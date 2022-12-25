@@ -28,7 +28,9 @@ G = make_mp3_synthesisfb(h, M)
 #     print(H_f)
 
 #opening myfile.wav
-samplerate, data = wavfile.read('myfile.wav')
+sr, data = wavfile.read('myfile.wav')
+#sampling interval
+ts = 1.0/sr
 Y = frame_sub_analysis(data, H, N) #xbuff is the input signal
 Z = frame_sub_synthesis(Y, G)
 print(Z)
@@ -38,16 +40,42 @@ def get_frame(h, N):
     Z = frame_sub_synthesis(Y, G) #Z is the frame
     return Z
 
-freq = np.arange(0, samplerate, samplerate/512)
-plt.figure()
-for i in range(0,1):
+N = len(H)
+n = np.arange(N)
+T = N/sr
+f = n / T
+
+plt.figure(figsize=(15,4.8))
+plt.xticks(np.arange(sr, step=4000))
+for i in range(0,M):
     H_f = np.fft.fft(H[:, i])
     H_f = 10 * np.log10(np.square(np.abs(H_f)))
-    plt.plot(freq, H_f)
+    plt.plot(f, H_f)
 plt.xlabel('Συχνότητα f (Hz)') #Τίτλος στον άξονα x
 plt.ylabel('Μέτρο (dB)') #Τίτλος στον άξονα y
 plt.title('Μέτρο συναρτήσεων μεταφοράς (Hz)') #Τίτλος του διαγράμματος
 plt.show()
 
-def frequency_in_barks(freq): #thn pairnw ws np array, vlepoume
-    return 13 * np.arctan(0.00076 * freq) + 3.5 * np.square(np.arctan(freq/7500))
+
+#TODO: Implement a good colormapping
+#TODO: Check if plot is right to plot 2 highs in each filter
+#TODO:Automatically define figsize
+def frequency_in_barks(f): #thn pairnw ws np array, vlepoume
+    return 13 * np.arctan(0.00076 * f) + 3.5 * np.square(np.arctan(f / 7500))
+
+#Plot frequency in barks diagram
+plt.figure(figsize=(15,4.8))
+f_in_barks = frequency_in_barks(f)
+for i in range(0,M):
+    H_f = np.fft.fft(H[:, i])
+    H_f = 10 * np.log10(np.square(np.abs(H_f)))
+    plt.plot(f_in_barks, H_f)
+plt.xlabel('Συχνότητα f (barks)') #Τίτλος στον άξονα x
+plt.ylabel('Μέτρο (dB)') #Τίτλος στον άξονα y
+plt.title('Μέτρο συναρτήσεων μεταφοράς (Hz)') #Τίτλος του διαγράμματος
+plt.show()
+
+
+#4th task
+def codec0(wavin, h, M, N):
+    return xhat, Y tot
