@@ -4,7 +4,7 @@ from mp3 import make_mp3_analysisfb, make_mp3_synthesisfb
 from frame import frame_sub_analysis, frame_sub_synthesis
 from matplotlib import pyplot as plt
 from scipy.io import wavfile
-from cycler import cycler
+
 
 
 def get_impulse_response():
@@ -39,12 +39,11 @@ def get_frame(h, N):
     return Z
 
 freq = np.arange(0, samplerate, samplerate/512)
-for i in range(0,M):
+plt.figure()
+for i in range(0,1):
     H_f = np.fft.fft(H[:, i])
     H_f = 10 * np.log10(np.square(np.abs(H_f)))
     plt.plot(freq, H_f)
-
-
 plt.xlabel('Συχνότητα f (Hz)') #Τίτλος στον άξονα x
 plt.ylabel('Μέτρο (dB)') #Τίτλος στον άξονα y
 plt.title('Μέτρο συναρτήσεων μεταφοράς (Hz)') #Τίτλος του διαγράμματος
