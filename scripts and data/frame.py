@@ -1,5 +1,4 @@
 import numpy as np
-
 def frame_sub_analysis(xbuff: np.ndarray, H: np.ndarray, q: int) -> np.ndarray:
 	"""
 	"""
