@@ -34,35 +34,43 @@ Z = frame_sub_synthesis(Y, G)
  #giati?/
 l = np.arange(L)
 T = L/sr
-f = l / T
 
+# f = np.arange(0,sr/2,sr/len(H_f))
+# f = l / T
 plt.figure(figsize=(15,4.8))
 plt.xticks(np.arange(sr, step=4000))
 for i in range(0,M):
     H_f = np.fft.fft(H[:, i])
     H_f = 10 * np.log10(np.square(np.abs(H_f)))
-    plt.plot(f, H_f)
+    f = np.arange(0, sr / 2, sr / len(H_f))
+    plt.plot(f,H_f[:len(f)])
 plt.xlabel('Συχνότητα f (Hz)') #Τίτλος στον άξονα x
 plt.ylabel('Μέτρο (dB)') #Τίτλος στον άξονα y
-plt.title('Μέτρο συναρτήσεων μεταφοράς (Hz)') #Τίτλος του διαγράμματος
+plt.title('Μέτρο συναρτήσεων μεταφοράς') #Τίτλος του διαγράμματος
 plt.show()
 
 #TODO: Plot function, argument:scale, returning db
 #TODO: Implement a good colormapping
-#TODO: Check if plot is right to plot 2 highs in each filter
 #TODO:Automatically define figsize
 def frequency_in_barks(f): #thn pairnw ws np array, vlepoume
     return 13 * np.arctan(0.00076 * f) + 3.5 * np.square(np.arctan(f / 7500))
 
 #Plot frequency in barks diagram
 plt.figure(figsize=(15,4.8))
-f_in_barks = frequency_in_barks(f)
+# f_in_barks = frequency_in_barks(f)
 for i in range(0,M):
     H_f = np.fft.fft(H[:, i])
     H_f = 10 * np.log10(np.square(np.abs(H_f)))
-    plt.plot(f_in_barks, H_f)
+    f = np.arange(0, sr / 2, sr / len(H_f))
+    f_in_barks = frequency_in_barks(f)
+    plt.plot(f_in_barks, H_f[:len(f_in_barks)])
 plt.xlabel('Συχνότητα f (barks)') #Τίτλος στον άξονα x
 plt.ylabel('Μέτρο (dB)') #Τίτλος στον άξονα y
-plt.title('Μέτρο συναρτήσεων μεταφοράς (Hz)') #Τίτλος του διαγράμματος
+plt.title('Μέτρο συναρτήσεων μεταφοράς') #Τίτλος του διαγράμματος
 plt.show()
 
+# auta htan peiramata gia na dw an douleuei kala o DCT
+c = frameDCT(Y_tot)
+# Y_tot_hat = iframeDCT(c)
+# P = DCTpower(c)
+# print(P)
