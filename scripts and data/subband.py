@@ -12,7 +12,7 @@ from dct import frameDCT, iframeDCT
 from psychoacoustics import DCTpower
 
 def get_impulse_response():
-    #read numpy file
+    # read numpy file
     h = np.load('h.npy', allow_pickle=True).item()
     h_coefficients = h["h"]
     return h_coefficients
