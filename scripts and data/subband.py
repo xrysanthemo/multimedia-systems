@@ -34,22 +34,36 @@ def codec0(wavin, h, M, N):
     G = make_mp3_synthesisfb(h, M)
     #Δημιουργώ την παράμετρο για το l
     L = len(h)  # 512
-    buffer_size = (N - 1) * M + L
+    # Μέγεθος buffer
+    xbuffer_size = (N - 1) * M + L
+    ybuffer_rows = int((N - 1) + L / M)
+
+    # Ορίζω το offset του buffer
+    xoffset = xbuffer_size - M * N
+    yoffset = ybuffer_rows - N
+
     #Υλοποιώ padding του σήματός μου για να μπορέσει να αναλυθεί σε subband
     padding = np.zeros((L - M,))
     iters = math.ceil(len(data) / (M * N))
     # Αρχικοποιώ Y_tot, xhat
     Y_tot = np.zeros((N * iters, M))
     xhat = np.zeros(data.shape)
-    data = np.append(data,padding)
+    xbuff = np.zeros([xbuffer_size])
+    ybuff = np.zeros([ybuffer_rows, M])
+    # data = np.append(data,padding)
 
     for i in range(0,iters): #to kanw mia fora tha to kanw expand meta
     #Διαβάζω το buffer: (N − 1)M + L
     #Διαβάζω τα δείγματά μου: M*N
         # original_samples = data[(i*M*N):(i+1)*M*N]
-        buffer_samples = data[(i*M*N):(i*M*N)+buffer_size]
+        # buffer_samples = data[(i*M*N):(i*M*N) + xbuffer_size]
+        xbuff[xoffset:xbuffer_size] = data[i * M * N:(i + 1) * M * N]
+
     #Frame Sub Analysis sto buffer mou
-        Y = frame_sub_analysis(buffer_samples, H, N)
+        Y = frame_sub_analysis(xbuff, H, N)
+    # Shift xbuffer
+        xbuff[0:xoffset] = xbuff[xoffset:2 * xoffset]
+
     #Επεξεργασία του frame
         Yc = donothing(Y)
     #Συσσώρευση
@@ -58,13 +72,17 @@ def codec0(wavin, h, M, N):
         Y_tot[bound1:bound2, :] = Yc
     #Αντιστροφή της διαδικασίας
         Yh = idonothing(Yc)
+
+        ybuff[yoffset:ybuffer_rows, :] = Yh
     #Παραγωγή δειγμάτων synthesis
-        Z = frame_sub_synthesis(Yh, G)
+        Z = frame_sub_synthesis(ybuff, G)
+    # Shift ybuffer
+        ybuff[0:yoffset, :] = ybuff[yoffset:2 * yoffset, :]
     #Συσσώρευση σε xhat
         xhat[(bound1 *M):(bound2*M)] = Z
-    # err = data - xhat
-    # plt.plot(err)
-    # plt.show()
+    err = data - xhat
+    plt.plot(err)
+    plt.show()
     #Write file to another file in our folder
     wavfile.write("MYFILE_CODECO.wav", sr, xhat.astype(np.int16))
     return xhat.astype(np.int16), Y_tot
