@@ -3,7 +3,9 @@ from mp3 import make_mp3_analysisfb, make_mp3_synthesisfb
 from frame import frame_sub_analysis, frame_sub_synthesis
 from matplotlib import pyplot as plt
 from scipy.io import wavfile
-
+from dct import iframeDCT, frameDCT
+from subband import codec0
+from psychoacoustics import DCTpower
 
 
 
@@ -69,8 +71,13 @@ plt.ylabel('Μέτρο (dB)') #Τίτλος στον άξονα y
 plt.title('Μέτρο συναρτήσεων μεταφοράς') #Τίτλος του διαγράμματος
 plt.show()
 
+sr, x_data = wavfile.read('myfile.wav')
+x_hat, Y_tot = codec0('myfile.wav',h, M,N)
 # auta htan peiramata gia na dw an douleuei kala o DCT
 c = frameDCT(Y_tot)
-# Y_tot_hat = iframeDCT(c)
-# P = DCTpower(c)
-# print(P)
+Y_tot_hat = iframeDCT(c)
+P = DCTpower(c)
+print(P)
+
+dct_error = Y_tot_hat - Y_tot
+print(Y_tot_hat-Y_tot)

@@ -8,7 +8,6 @@ def frameDCT(Y): #Y einai ena frame N * M
     #c: Διάσταση NM X1
     #u: συντελεστης μπαντας, i: αριθμος μπαντας k  =iN +u
     #TODO: Ena frequency matrix
-    #TODO: Κάπως να είναι flattened
     c = fft.dct(np.ravel(Y, order ='C'))
     return c
 

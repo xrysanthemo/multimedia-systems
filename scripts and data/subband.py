@@ -86,6 +86,7 @@ def codec0(wavin, h, M, N):
     #Write file to another file in our folder
     wavfile.write("MYFILE_CODECO.wav", sr, xhat.astype(np.int16))
     return xhat.astype(np.int16), Y_tot
+
 sr, x_data = wavfile.read('myfile.wav')
 x_hat, Y_tot = codec0('myfile.wav',h, M,N)
 print(Y_tot)
@@ -106,7 +107,6 @@ fig.suptitle('Vertically stacked subplots')
 axs[0].plot(x_data[0:5000])
 axs[1].plot(x_hat[0:5000])
 plt.show()
-
 plt.plot(x_data[0:5000])
 plt.plot(x_hat[0:5000])
 plt.title("Comparison between the two bitstreams")
