@@ -9,7 +9,7 @@ from scipy.io import wavfile
 from nothing import donothing, idonothing
 from scipy import stats
 from dct import frameDCT, iframeDCT
-from psychoacoustics import DCTpower
+# from psychoacoustics import DCTpower
 
 def get_impulse_response():
     # read numpy file
@@ -88,6 +88,8 @@ def codec0(wavin, h, M, N):
     return xhat.astype(np.int16), Y_tot
 
 sr, x_data = wavfile.read('myfile.wav')
+# x_fft = np.fft.fft(x_data)
+# plt.plot(x_fft)
 x_hat, Y_tot = codec0('myfile.wav',h, M,N)
 print(Y_tot)
 def signalPower(x):
