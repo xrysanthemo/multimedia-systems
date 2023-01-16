@@ -11,22 +11,22 @@ def Dksparse(Kmax): #Η είσοδος Kmax αντιστοιχεί στη μέγ
     row = []
     col = []
     data =[]
-    for j in range(0, Kmax): #k diakrites zwnes - grammes
-        for k in range(0, Kmax): #sixnotita j e Dk - stiles
-            if 2 < k and k < 282:
+    #k diakrites zwnes - grammes
+    for k in range(0, Kmax): #sixnotita j e Dk - stiles
+        if 2 < k and k < 282:
+            col.append(k)
+            row.append(2)
+            data.append(1)
+        elif 282 <= k and k < 570:
+            for ind in range(2,14):
                 col.append(k)
-                row.append(2)
+                row.append(ind)
                 data.append(1)
-            elif 282 <= k and k < 570:
-                for ind in range(2,14):
-                    col.append(k)
-                    row.append(ind)
-                    data.append(1)
-            elif 570 <= k and k < 1152:
-                for ind in range(2,18):
-                    col.append(k)
-                    row.append(ind)
-                    data.append(1)
+        elif 570 <= k and k < 1152:
+            for ind in range(2,18):
+                col.append(k)
+                row.append(ind)
+                data.append(1)
     D = csr_matrix((data, (row, col)), shape=(Kmax, Kmax)).toarray()
     return D #έξοδος είναι sparse matrix Kmax * Kmax
 
