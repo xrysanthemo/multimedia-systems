@@ -72,16 +72,12 @@ plt.show()
 
 sr, x_data = wavfile.read('myfile.wav')
 x_hat, Y_tot = codec0('myfile.wav',h, M,N)
-# auta htan peiramata gia na dw an douleuei kala o DCT
+
+#Πειράματα για DCT
 c = frameDCT(Y_tot)
 Y_tot_hat = iframeDCT(c)
-P = DCTpower(c)
-print(P)
 
-# dct_error = Y_tot_hat - Y_tot
-# print(Y_tot_hat-Y_tot)
-
-###
+#Πειράματα Μέρους 3 - Psychoacoustics
 
 P = DCTpower(c)
 size = M *N
