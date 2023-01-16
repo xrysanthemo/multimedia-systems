@@ -5,8 +5,7 @@ from matplotlib import pyplot as plt
 from scipy.io import wavfile
 from dct import iframeDCT, frameDCT
 from subband import codec0
-from psychoacoustics import DCTpower
-
+from psychoacoustics import DCTpower, Dksparse, STinit
 
 
 def get_impulse_response():
@@ -79,5 +78,13 @@ Y_tot_hat = iframeDCT(c)
 P = DCTpower(c)
 print(P)
 
-dct_error = Y_tot_hat - Y_tot
-print(Y_tot_hat-Y_tot)
+# dct_error = Y_tot_hat - Y_tot
+# print(Y_tot_hat-Y_tot)
+
+###
+
+P = DCTpower(c)
+size = M *N
+D = Dksparse(size)
+print(D)
+ST = STinit(c,D)

@@ -1,7 +1,5 @@
 import numpy as np
-from scipy.sparse import csc_array, csr_array, csr_matrix
-from dct import frameDCT, iframeDCT
-from subband import codec0, get_impulse_response
+from scipy.sparse import csr_matrix
 
 def DCTpower(c):
     #ypologizei isxy se db apo suntelestes dct symfwna me auth th sxesh
@@ -31,10 +29,6 @@ def Dksparse(Kmax): #Η είσοδος Kmax αντιστοιχεί στη μέγ
     D = csr_matrix((data, (row, col)), shape=(Kmax, Kmax)) #.toarray()
     return D #έξοδος είναι sparse matrix Kmax * Kmax
 
-
-D = Dksparse(1152)
-print(D)
-
 def STinit(c,D):
     ST = []
     P = DCTpower(c)
@@ -45,7 +39,7 @@ def STinit(c,D):
         if (P[k] > P [k +1] and P[k] > P[k-1]):
             print(rows.shape[0])
             for i in rows:
-                if (P[k] > P[k + i] + 7 and P[k] > P[k - i] + 7):
+                if (k+i <1152 and P[k] > P[k + i] + 7 and P[k] > P[k - i] + 7):
                     flag = flag + 1
                 else:
                     flag = 0
@@ -53,11 +47,3 @@ def STinit(c,D):
                 ST.append(k)
         flag = 0
     return ST
-
-h = get_impulse_response().reshape(512,)
-x_hat, Y_tot = codec0('myfile.wav',h, 32, 36)
-# auta htan peiramata gia na dw an douleuei kala o DCT
-c = frameDCT(Y_tot)
-Y_tot_hat = iframeDCT(c)
-P = DCTpower(c)
-ST = STinit(c,D)
