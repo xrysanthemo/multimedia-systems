@@ -6,7 +6,7 @@ from scipy.io import wavfile
 from dct import iframeDCT, frameDCT
 from subband import codec0
 from psychoacoustics import DCTpower, Dksparse, STinit
-
+from barks import frequency_in_barks
 
 def get_impulse_response():
     #read numpy file
@@ -30,14 +30,6 @@ ts = 1.0/sr
 Y = frame_sub_analysis(data, H, N) #xbuff is the input signal
 Z = frame_sub_synthesis(Y, G)
 
-
-#na thumithw giati avta
- #giati?/
-l = np.arange(L)
-T = L/sr
-
-# f = np.arange(0,sr/2,sr/len(H_f))
-# f = l / T
 plt.figure(figsize=(15,4.8))
 plt.xticks(np.arange(sr, step=4000))
 for i in range(0,M):
@@ -50,21 +42,15 @@ plt.ylabel('Μέτρο (dB)') #Τίτλος στον άξονα y
 plt.title('Μέτρο συναρτήσεων μεταφοράς') #Τίτλος του διαγράμματος
 plt.show()
 
-#TODO: Plot function, argument:scale, returning db
-#TODO: Implement a good colormapping
-#TODO:Automatically define figsize
-def frequency_in_barks(f): #thn pairnw ws np array, vlepoume
-    return 13 * np.arctan(0.00076 * f) + 3.5 * np.square(np.arctan(f / 7500))
-
 #Plot frequency in barks diagram
 plt.figure(figsize=(15,4.8))
-# f_in_barks = frequency_in_barks(f)
 for i in range(0,M):
     H_f = np.fft.fft(H[:, i])
     H_f = 10 * np.log10(np.square(np.abs(H_f)))
     f = np.arange(0, sr / 2, sr / len(H_f))
     f_in_barks = frequency_in_barks(f)
     plt.plot(f_in_barks, H_f[:len(f_in_barks)])
+
 plt.xlabel('Συχνότητα f (barks)') #Τίτλος στον άξονα x
 plt.ylabel('Μέτρο (dB)') #Τίτλος στον άξονα y
 plt.title('Μέτρο συναρτήσεων μεταφοράς') #Τίτλος του διαγράμματος
