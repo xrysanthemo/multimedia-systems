@@ -33,17 +33,14 @@ def STinit(c,D):
     ST = []
     P = DCTpower(c)
     Kmax = D.shape[0]
-    flag = 0
-    for k in range(1,Kmax - 1):
+    for k in range(1, Kmax - 1):
         (rows, cols) = D[:, k].nonzero()
-        if (P[k] > P [k +1] and P[k] > P[k-1]):
-            print(rows.shape[0])
+        if (P[k] > P [k + 1] and P[k] > P[k-1]):
             for i in rows:
-                if (k+i <1152 and P[k] > P[k + i] + 7 and P[k] > P[k - i] + 7):
-                    flag = flag + 1
-                else:
-                    flag = 0
-            if flag == rows.shape[0]:
-                ST.append(k)
-        flag = 0
+                if (k+i < 1152 and P[k] > P[k + i] + 7 and P[k] > P[k - i] + 7):
+                    ST.append(k)
     return ST
+
+
+
+

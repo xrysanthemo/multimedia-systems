@@ -2,7 +2,6 @@ import math
 import numpy as np
 from mp3 import make_mp3_analysisfb, make_mp3_synthesisfb
 from frame import frame_sub_analysis, frame_sub_synthesis
-from matplotlib import pyplot as plt
 from scipy.io import wavfile
 from nothing import donothing, idonothing
 
@@ -61,11 +60,11 @@ def codec0(wavin, h, M, N):
         xhat[(bound1 *M):(bound2*M)] = Z
 
     # Write file to another file in our folder
-    wavfile.write("MYFILE_CODECO.wav", sr, xhat.astype(np.int64))
-    return xhat.astype(np.int64), Y_tot
+    wavfile.write("MYFILE_CODECO.wav", sr, xhat.astype(np.int16))  # PREPEI NA EINAI INT16
+    return xhat.astype(np.int16), Y_tot
 
 def signalPower(x):
-    return np.mean(np.square(x,dtype='int64')) #to prevent overflow
+    return np.mean(np.square(x,dtype='int16')) #to prevent overflow
 
 def SNRsystem(inputSig, outputSig):
     noise = outputSig - inputSig
@@ -73,28 +72,33 @@ def SNRsystem(inputSig, outputSig):
     powN = signalPower(noise)
     return powS/powN
 
-#Coder only
+#Coder Implementation
 def coder0(wavin, h,M,N):
     # Διαβάζω το αρχείο .wav
     sr, data = wavfile.read(wavin)  # 514944
-    # Κατασκευάζω τα φίλτρα ανάλυσης
+    # Κατασκευάζω τα φίλτρα ανάλυσης και σύνθεσης
     H = make_mp3_analysisfb(h, M)
-    # Δημιουργώ την παράμετρο για το l
     L = len(h)  # 512
-    buffer_size = (N - 1) * M + L
-    # Υλοποιώ padding του σήματός μου για να μπορέσει να αναλυθεί σε subband
-    padding = np.zeros((L - M,))
+
+    # Μέγεθος buffer
+    xbuffer_size = (N - 1) * M + L
+    # Buffers
+    xbuff = np.zeros([xbuffer_size])
+    # Ορίζω το offset του buffer
+    xoffset = xbuffer_size - M * N
+
     iters = math.ceil(len(data) / (M * N))
-    data = np.append(data, padding)
+
     # Αρχικοποιώ Y_tot, xhat
     Y_tot = np.zeros((N * iters, M))
-    for i in range(0, iters):  # to kanw mia fora tha to kanw expand meta
-        # Διαβάζω το buffer: (N − 1)M + L
-        # Διαβάζω τα δείγματά μου: M*N
-        original_samples = data[(i * M * N):(i + 1) * M * N]
-        buffer_samples = data[(i * M * N):(i * M * N) + buffer_size]
+
+    for i in range(0, iters):
+        # Fill buffer
+        xbuff[xoffset:xbuffer_size] = data[i * M * N:(i + 1) * M * N]
         # Frame Sub Analysis sto buffer mou
-        Y = frame_sub_analysis(buffer_samples, H, N)
+        Y = frame_sub_analysis(xbuff, H, N)
+        # Shift xbuffer
+        xbuff[0:xoffset] = xbuff[xoffset:2 * xoffset]
         # Επεξεργασία του frame
         Yc = donothing(Y)
         # Συσσώρευση
@@ -104,7 +108,39 @@ def coder0(wavin, h,M,N):
     return Y_tot
 
 #Decoder Implementation
-def decoder0(Y_tot, h,M,N):
-    xhat = np.zeros(data.shape) #??????
-    return xhat
+def decoder0(Y_tot, h, M, N):
+    sr = 44100
+    data_len = Y_tot.shape[0] * Y_tot.shape[1]
+    iters = math.ceil(data_len / (M * N))
+    xhat = np.zeros(data_len)
+
+    for i in range(0, iters):
+        bound1 = i * N
+        bound2 = (i + 1) * N
+        Yc = Y_tot[bound1:bound2, :]
+
+        L = len(h)  # 512
+
+        # Μέγεθος buffer
+        ybuffer_rows = int((N - 1) + L / M)
+        # Buffers
+        ybuff = np.zeros([ybuffer_rows, M])
+        # Ορίζω το offset του buffer
+        yoffset = ybuffer_rows - N
+
+        G = make_mp3_synthesisfb(h, M)
+        # Αντιστροφή της διαδικασίας
+        Yh = idonothing(Yc)
+        ybuff[yoffset:ybuffer_rows, :] = Yh
+        # Παραγωγή δειγμάτων synthesis
+        Z = frame_sub_synthesis(ybuff, G)
+        # Shift ybuffer
+        ybuff[0:yoffset, :] = ybuff[yoffset:2 * yoffset, :]
+        # Συσσώρευση σε xhat
+        xhat[(bound1 * M):(bound2 * M)] = Z
+
+    # Write file to another file in our folder
+    wavfile.write("MYFILE_DECODER.wav", sr, xhat.astype(np.int16))
+
+    return xhat.astype(np.int16)
 
