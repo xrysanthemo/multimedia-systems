@@ -17,12 +17,12 @@ def Dksparse(Kmax): #Η είσοδος Kmax αντιστοιχεί στη μέγ
             row.append(2)
             data.append(1)
         elif 282 <= k and k < 570:
-            for ind in range(2,14):
+            for ind in range(2, 14):
                 col.append(k)
                 row.append(ind)
                 data.append(1)
         elif 570 <= k and k < 1152:
-            for ind in range(2,28):
+            for ind in range(2, 28):
                 col.append(k)
                 row.append(ind)
                 data.append(1)

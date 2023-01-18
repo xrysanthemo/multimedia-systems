@@ -1,7 +1,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from barks import frequency_in_barks
+from barks import Hz2Barks
 
 #Plot H in Hz diagram
 def plot_H_Hz(H, sr):
@@ -27,7 +27,7 @@ def plot_H_barks(H, sr):
         H_f = np.fft.fft(H[:, i])
         H_f = 10 * np.log10(np.square(np.abs(H_f)))
         f = np.arange(0, sr / 2, sr / len(H_f))
-        f_in_barks = frequency_in_barks(f)
+        f_in_barks = Hz2Barks(f)
         plt.plot(f_in_barks, H_f[:len(f_in_barks)], label=f'H filter: {i + 1}')
     plt.xlabel('Συχνότητα f (barks)') #Τίτλος στον άξονα x
     plt.ylabel('Μέτρο (dB)') #Τίτλος στον άξονα y
