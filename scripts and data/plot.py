@@ -46,3 +46,9 @@ def plot_snr(x_data, x_hat):
     plt.plot(x_hat[0:5000])
     plt.title("Comparison between the two bitstreams")
     plt.show()
+
+# Plot error data - xhat
+def plot_err(data, x_hat):
+    plt.plot(data - x_hat)
+    plt.title("Error between data and x_hat")
+    plt.show()

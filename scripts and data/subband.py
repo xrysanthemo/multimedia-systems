@@ -20,7 +20,7 @@ def codec0(wavin, h, M, N):
     #Δημιουργώ την παράμετρο για το l
     L = len(h)  # 512
     MN = M * N
-
+    data_len = len(data)
     # Μέγεθος buffer
     xbuffer_size = (N - 1) * M + L
     ybuffer_rows = int((N - 1) + L / M)
@@ -31,7 +31,7 @@ def codec0(wavin, h, M, N):
     xoffset = xbuffer_size - MN
     yoffset = ybuffer_rows - N
 
-    iters = math.ceil(len(data) / MN)
+    iters = math.ceil(data_len / MN)
 
     # Αρχικοποιώ Y_tot, xhat
     Y_tot = np.zeros((N * iters, M))
@@ -59,7 +59,6 @@ def codec0(wavin, h, M, N):
         ybuff[0:yoffset, :] = ybuff[yoffset:2 * yoffset, :]
     # Συσσώρευση σε xhat
         xhat[(bound1 *M):(bound2*M)] = Z
-
     # Write file to another file in our folder
     wavfile.write("MYFILE_CODECO.wav", sr, xhat.astype(np.int16))
     return xhat.astype(np.int16), Y_tot
