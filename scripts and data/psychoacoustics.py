@@ -41,6 +41,22 @@ def STinit(c,D):
                     ST.append(k)
     return ST
 
+def MaskPower(c, ST):
+    P = DCTpower(c)
+    i = 0
+    PM  = np.zeros((len(ST),))
+    for k in ST:
+        PM[i] = 10 * np.log10( sum([10**(0.1*P[k + j]) for j in range(-1,2,1)]))
+        i += 1
+    return PM
+
+def get_hearing_threshold()
+    Tq = np.load('Tq.npy', allow_pickle=True).item()
+    Tq = Tq["Tq"]
+    return Tq
+
+def STreduction(ST, c, Tq):
 
 
 
+    return STr, PMr
