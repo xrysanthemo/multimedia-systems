@@ -68,13 +68,13 @@ def get_hearing_threshold():
     return Tq
 
 def STreduction(ST, c, Tq):
-    P = DCTpower(c)
+    P = MaskPower(c, ST)
     STr = []
     PMr = []
-    for k in ST:
-        if Tq[0, k] <= P[k]:
-            STr.append(k)
-            PMr.append(P[k])
+    for j in range(len(ST)):
+        if Tq[0, j] <= P[j]:
+            STr.append(j)
+            PMr.append(P[j])
     return STr, PMr
 # TODO CHANGE KMAX = MN -1
 def SpreadFunc(ST, PM, Kmax):
@@ -121,5 +121,22 @@ def Global_Masking_Thresholds(Ti, Tq):
         Tg[i] = 10*np.log10(val)
     return Tg
 
+def psycho(c, D):
 
+    ST = STinit(c, D)
+
+    # Κατώφλι ακουστότητας
+    Tq = get_hearing_threshold()
+
+    MN = Tq.shape[1]
+
+    # Ελάτωση των maskers
+    STr, PMr = STreduction(ST, c, Tq)
+
+    # Define Masking Thresholds
+    Ti = Masking_Thresholds(ST, PMr, MN)
+
+    # Define the Global Masking Thresholds
+    Tg = Global_Masking_Thresholds(Ti, Tq)
+    return Tg
 
