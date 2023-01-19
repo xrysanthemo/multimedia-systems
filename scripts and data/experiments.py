@@ -3,7 +3,7 @@ from mp3 import make_mp3_analysisfb, make_mp3_synthesisfb
 from scipy.io import wavfile
 from dct import iframeDCT, frameDCT
 from subband import codec0, get_impulse_response, SNRsystem, coder0, decoder0
-from psychoacoustics import DCTpower, Dksparse, STinit, MaskPower, get_hearing_threshold
+from psychoacoustics import DCTpower, Dksparse, STinit, MaskPower, get_hearing_threshold, STreduction, Hz2Barks, SpreadFunc
 from plot import plot_H_Hz, plot_H_barks, plot_err
 
 # Define Parameters
@@ -39,7 +39,7 @@ print("SNR: ", SNR)
 #Πειράματα για DCT
 c = frameDCT(Y_tot)
 Y_tot_hat = iframeDCT(c)
-# print("Y_tot diff: ", np.mean(np.mean(Y_tot - Y_tot_hat)))
+# print("Y_tot diff: ", np.mean(np.mean(Y_tot[36*10:36*11] - Y_tot_hat[36*10:36*11])))
 
 #Πειράματα Μέρους 3 - Psychoacoustics
 P = DCTpower(c)
@@ -51,4 +51,10 @@ print(ST)
 PT = MaskPower(c, ST)
 
 #Κατώφλι ακουστότητας
-get_hearing_threshold()
+Tq = get_hearing_threshold()
+
+#Ελάτωση των maskers
+STr, PMr = STreduction(ST, c, Tq)
+
+#Spreading Function
+SF = SpreadFunc(STr, PMr, MN)

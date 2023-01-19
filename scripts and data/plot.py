@@ -1,7 +1,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from barks import Hz2Barks
+from psychoacoustics import Hz2Barks
 
 #Plot H in Hz diagram
 def plot_H_Hz(H, sr):
