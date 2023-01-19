@@ -42,10 +42,10 @@ c = frameDCT(Y_tot)
 Y_tot_hat = iframeDCT(c)
 # print("Y_tot diff: ", np.mean(np.mean(Y_tot[36*10:36*11] - Y_tot_hat[36*10:36*11])))
 
-# Πειράματα Μέρους 3 - Psychoacoustics
+# Πειράματα Psychoacoustics
+# Υπολογισμος συχνοτικών περιοχών
 D = Dksparse(MN)
+# Υπολογισμός κατωφλίου ακουστότητας
 Tg = psycho(c, D)
-plt.plot(Tg)
-plt.show()
 
 
