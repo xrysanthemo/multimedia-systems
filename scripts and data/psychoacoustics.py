@@ -76,15 +76,14 @@ def STreduction(ST, c, Tq):
             STr.append(k)
             PMr.append(P[k])
     return STr, PMr
-
+# TODO CHANGE KMAX = MN -1
 def SpreadFunc(ST, PM, Kmax):
     STlen = len(ST)
-    MN = 1152 # Αν πάρουμε το Kmax ΝΑ ΤΟ ΑΛΛΑΞΟΥΜΕ
     SF = np.zeros((Kmax, STlen))
     # Sample Frequency
     fs = 44100
     # K to Frequencies
-    f = [k*fs/(MN*2) for k in range(Kmax)]
+    f = [k*fs/(Kmax*2) for k in range(Kmax)]
     z = Hz2Barks(np.asarray(f))
     Dz = np.asarray([[z[i] - z[k] for k in ST] for i in range(Kmax)])
     # i every k corresponding to frequencies
@@ -100,3 +99,27 @@ def SpreadFunc(ST, PM, Kmax):
             elif Dz[i, j] < 8 and Dz[i, j] >= 1:
                 SF[i, j] = (0.15*PM[j] - 17)*Dz[i, j] - 0.15*PM[j]
     return SF
+
+def Masking_Thresholds(ST, PM, Kmax):
+    STlen = len(ST)
+    Ti = np.zeros((Kmax, STlen))
+    # Sample Frequency
+    fs = 44100
+    # K to Frequencies
+    f = [k*fs/(Kmax*2) for k in range(Kmax)]
+    z = Hz2Barks(np.asarray(f))
+    SF = SpreadFunc(ST, PM, Kmax)
+    Ti =np.asarray([[PM[j] - 0.275*z[ST[j]] + SF[i, j] - 6.025 for j in range(STlen)] for i in range(Kmax)])
+    return Ti
+
+def Global_Masking_Thresholds(Ti, Tq):
+    Tg = np.zeros((Ti.shape[0],))
+    for i in range(Ti.shape[0]):
+        val = 10**(0.1*Tq[0,i])
+        for j in range(Ti.shape[1]):
+           val += 10**(0.1*Ti[i, j])
+        Tg[i] = 10*np.log10(val)
+    return Tg
+
+
+
