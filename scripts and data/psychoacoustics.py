@@ -50,9 +50,11 @@ def MaskPower(c, ST):
         i += 1
     return PM
 
-def get_hearing_threshold()
-    Tq = np.load('Tq.npy', allow_pickle=True).item()
-    Tq = Tq["Tq"]
+def get_hearing_threshold():
+    Tq = np.load('Tq.npy', allow_pickle=True)
+    #NaN values handling
+    for i in range(len(Tq)):
+        if Tq[i]
     return Tq
 
 def STreduction(ST, c, Tq):
