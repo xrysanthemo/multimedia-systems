@@ -37,6 +37,7 @@ x_hat, Y_tot = codec0('myfile.wav', h, M, N)
 #Experiments - SNR
 SNR = SNRsystem(data, x_hat)
 print("SNR: ", SNR)
+print("5")
 
 #Πειράματα για DCT
 c = frameDCT(Y_tot)
