@@ -4,6 +4,7 @@ from scipy.io import wavfile
 from dct import iframeDCT, frameDCT
 from subband import codec0, get_impulse_response, SNRsystem, coder0, decoder0
 from psychoacoustics import DCTpower, Dksparse, STinit, MaskPower, get_hearing_threshold, STreduction, Hz2Barks, psycho
+from quantization import critical_bands, DCT_band_scale
 from plot import plot_H_Hz, plot_H_barks, plot_err
 import matplotlib.pyplot as plt
 
@@ -47,5 +48,8 @@ Y_tot_hat = iframeDCT(c)
 D = Dksparse(MN)
 # Υπολογισμός κατωφλίου ακουστότητας
 Tg = psycho(c, D)
+# plt.plot(Tg)
+# plt.show()
 
-
+# Πειράματα Quantization
+cs, sc = DCT_band_scale(c[MN*0:MN*1])
