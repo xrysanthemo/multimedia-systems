@@ -52,8 +52,14 @@ Tg = psycho(c, D)
 # plt.show()
 
 # Πειράματα Quantization
+# Scale DCT
 cs, sc = DCT_band_scale(c[MN*0:MN*1])
-b = 16
+# bits num
+b = 4
+# Quantize
 symb_index = quantizer(cs, b)
+# Dequantize
 xh = dequantizer(symb_index, b)
-print("a")
+# Quantization error
+q_error = np.max(np.abs(cs - xh))
+print("Max Quantization Error", q_error)
