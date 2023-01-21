@@ -4,7 +4,7 @@ from scipy.io import wavfile
 from dct import iframeDCT, frameDCT
 from subband import codec0, get_impulse_response, SNRsystem, coder0, decoder0
 from psychoacoustics import DCTpower, Dksparse, STinit, MaskPower, get_hearing_threshold, STreduction, Hz2Barks, psycho
-from quantization import critical_bands, DCT_band_scale
+from quantization import critical_bands, DCT_band_scale, quantizer, dequantizer
 from plot import plot_H_Hz, plot_H_barks, plot_err
 import matplotlib.pyplot as plt
 
@@ -34,10 +34,9 @@ x_hat, Y_tot = codec0('myfile.wav', h, M, N)
 # print("Y_tot diff: ", np.mean(np.mean(Y_tot - Y_tot2)))
 # plot_err(data, x_hat)
 
-#Experiments - SNR
-SNR = SNRsystem(data, x_hat)
-print("SNR: ", SNR)
-print("5")
+# #Experiments - SNR
+# SNR = SNRsystem(data, x_hat)
+# print("SNR: ", SNR)
 
 #Πειράματα για DCT
 c = frameDCT(Y_tot)
@@ -54,3 +53,7 @@ Tg = psycho(c, D)
 
 # Πειράματα Quantization
 cs, sc = DCT_band_scale(c[MN*0:MN*1])
+b = 16
+symb_index = quantizer(cs, b)
+xh = dequantizer(symb_index, b)
+print("a")
