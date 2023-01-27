@@ -1,6 +1,5 @@
 import numpy as np
 
-# quantizer
 def critical_bands(K):
     MN = K
     cb = np.zeros(MN,)
@@ -78,3 +77,28 @@ def dequantizer(symb_index, b):
             upper_bound = lower_bound + wb
         xh[i] = (lower_bound + upper_bound)/2
     return xh
+
+def all_bands_quantizer(c, Tg):
+    bands = create_crit_bands()
+    MN = len(Tg)
+    cb = critical_bands(MN)
+    max_bands = int(np.max(cb) + 1)
+    symb_index = []
+    B = []
+    SF =[]
+    for i in range(1,max_bands):
+        Pb = np.ones(len(c)) * np.inf
+        while not(np.all(Pb[np.where(cb == i)] < Tg[np.where(cb == i)[0] - 1])):
+            b = 1
+            c_of_band = c[np.where(cb == i)[0] - 1]
+            cs, sc = DCT_band_scale(c_of_band)
+            symb_index_c = quantizer(cs, b)
+            c_h = dequantizer(symb_index_c, b)
+            c_h_coeff = np.sign(c_h) * ((c_h * sc[0])**(4/3))
+            quant_error = np.abs([np.where(cb == i)[0] - 1] - c_h_coeff)
+            Pb = 10 * np.log10(quant_error**2)
+            b += 1
+        symb_index.append(symb_index_c)
+        B.append(b)
+        SF.append(sc[0])
+    return symb_index, SF, B

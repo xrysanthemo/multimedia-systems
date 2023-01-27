@@ -4,7 +4,7 @@ from scipy.io import wavfile
 from dct import iframeDCT, frameDCT
 from subband import codec0, get_impulse_response, SNRsystem, coder0, decoder0
 from psychoacoustics import DCTpower, Dksparse, STinit, MaskPower, get_hearing_threshold, STreduction, Hz2Barks, psycho
-from quantization import critical_bands, DCT_band_scale, quantizer, dequantizer
+from quantization import critical_bands, DCT_band_scale, quantizer, dequantizer, all_bands_quantizer
 from plot import plot_H_Hz, plot_H_barks, plot_err, plot_snr
 import matplotlib.pyplot as plt
 
@@ -57,8 +57,8 @@ Y_tot_hat = iframeDCT(c)
 D = Dksparse(MN)
 # Υπολογισμός κατωφλίου ακουστότητας
 Tg = psycho(c, D)
-# plt.plot(Tg)
-# plt.show()
+plt.plot(Tg)
+plt.show()
 
 # Πειράματα Quantization
 # Scale DCT
@@ -72,3 +72,4 @@ xh = dequantizer(symb_index, b)
 # Quantization error
 q_error = np.max(np.abs(cs - xh))
 print("Max Quantization Error", q_error)
+symb_index_r, SF, B = all_bands_quantizer(c, Tg)
