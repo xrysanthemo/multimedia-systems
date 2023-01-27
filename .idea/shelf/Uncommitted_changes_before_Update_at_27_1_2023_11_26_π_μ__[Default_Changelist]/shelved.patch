@@ -1,0 +1,50 @@
+Index: scripts and data/experiments.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import numpy as np\r\nfrom mp3 import make_mp3_analysisfb, make_mp3_synthesisfb\r\nfrom scipy.io import wavfile\r\nfrom dct import iframeDCT, frameDCT\r\nfrom subband import codec0, get_impulse_response, SNRsystem, coder0, decoder0\r\nfrom psychoacoustics import DCTpower, Dksparse, STinit, MaskPower, get_hearing_threshold, STreduction, Hz2Barks, psycho\r\nfrom quantization import critical_bands, DCT_band_scale, quantizer, dequantizer\r\nfrom plot import plot_H_Hz, plot_H_barks, plot_err\r\nimport matplotlib.pyplot as plt\r\n\r\n# Define Parameters\r\nM = 32 #num of filters\r\nL = 512 #len of filters\r\nN = 36 #num of samples\r\nMN = M * N\r\n\r\nh = get_impulse_response().reshape(512,)\r\nH = make_mp3_analysisfb(h, M)\r\n\r\nsr, data = wavfile.read('myfile.wav')\r\n\r\n# # Plot H Hz - barks\r\n# plot_H_Hz(H, sr)\r\n# plot_H_barks(H, sr)\r\n\r\n# Codec\r\nx_hat, Y_tot = codec0('myfile.wav', h, M, N)\r\n\r\n# # Coder - Decoder\r\n# Y_tot = coder0('myfile.wav', h, M, N)\r\n# x_hat = decoder0(Y_tot, h, M, N)\r\n\r\n# print(\"x_hat diff: \", np.mean(np.mean(x_hat - x_hat2)))\r\n# print(\"Y_tot diff: \", np.mean(np.mean(Y_tot - Y_tot2)))\r\n# plot_err(data, x_hat)\r\n\r\n# #Experiments - SNR\r\n# SNR = SNRsystem(data, x_hat)\r\n# print(\"SNR: \", SNR)\r\n\r\n#Πειράματα για DCT\r\nc = frameDCT(Y_tot)\r\nY_tot_hat = iframeDCT(c)\r\n# print(\"Y_tot diff: \", np.mean(np.mean(Y_tot[36*10:36*11] - Y_tot_hat[36*10:36*11])))\r\n\r\n# Πειράματα Psychoacoustics\r\n# Υπολογισμος συχνοτικών περιοχών\r\nD = Dksparse(MN)\r\n# Υπολογισμός κατωφλίου ακουστότητας\r\nTg = psycho(c, D)\r\n# plt.plot(Tg)\r\n# plt.show()\r\n\r\n# Πειράματα Quantization\r\n# Scale DCT\r\ncs, sc = DCT_band_scale(c[MN*0:MN*1])\r\n# bits num\r\nb = 4\r\n# Quantize\r\nsymb_index = quantizer(cs, b)\r\n# Dequantize\r\nxh = dequantizer(symb_index, b)\r\n# Quantization error\r\nq_error = np.max(np.abs(cs - xh))\r\nprint(\"Max Quantization Error\", q_error)
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- scripts and data/experiments.py	(revision c3eb1c4a7bea2a72ca2cfaba859218beb1ca7d2c)
++++ scripts and data/experiments.py	(date 1674811533676)
+@@ -34,9 +34,9 @@
+ # print("Y_tot diff: ", np.mean(np.mean(Y_tot - Y_tot2)))
+ # plot_err(data, x_hat)
+ 
+-# #Experiments - SNR
+-# SNR = SNRsystem(data, x_hat)
+-# print("SNR: ", SNR)
++#Experiments - SNR
++SNR = SNRsystem(data, x_hat)
++print("SNR: ", SNR, " dB")
+ 
+ #Πειράματα για DCT
+ c = frameDCT(Y_tot)
+Index: scripts and data/subband.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import math\r\nimport numpy as np\r\nfrom mp3 import make_mp3_analysisfb, make_mp3_synthesisfb\r\nfrom frame import frame_sub_analysis, frame_sub_synthesis\r\nfrom scipy.io import wavfile\r\nfrom nothing import donothing, idonothing\r\n\r\ndef get_impulse_response():\r\n    # read numpy file\r\n    h = np.load('h.npy', allow_pickle=True).item()\r\n    h_coefficients = h[\"h\"]\r\n    return h_coefficients\r\n\r\ndef codec0(wavin, h, M, N):\r\n    #Διαβάζω το αρχείο .wav\r\n    sr, data = wavfile.read(wavin) #514944\r\n    #Κατασκευάζω τα φίλτρα ανάλυσης και σύνθεσης\r\n    H = make_mp3_analysisfb(h, M)\r\n    G = make_mp3_synthesisfb(h, M)\r\n    #Δημιουργώ την παράμετρο για το l\r\n    L = len(h)  # 512\r\n    MN = M * N\r\n    data_len = len(data)\r\n    # Μέγεθος buffer\r\n    xbuffer_size = (N - 1) * M + L\r\n    ybuffer_rows = int((N - 1) + L / M)\r\n    # Buffers\r\n    xbuff = np.zeros([xbuffer_size])\r\n    ybuff = np.zeros([ybuffer_rows, M])\r\n    # Ορίζω το offset του buffer\r\n    xoffset = xbuffer_size - MN\r\n    yoffset = ybuffer_rows - N\r\n\r\n    iters = math.ceil(data_len / MN)\r\n\r\n    # Αρχικοποιώ Y_tot, xhat\r\n    Y_tot = np.zeros((N * iters, M))\r\n    xhat = np.zeros(data.shape)\r\n\r\n    for i in range(0, iters):\r\n    # Fill buffer\r\n        xbuff[xoffset:xbuffer_size] = data[i * MN:(i + 1) * MN]\r\n    # Frame Sub Analysis sto buffer mou\r\n        Y = frame_sub_analysis(xbuff, H, N)\r\n    # Shift xbuffer\r\n        xbuff[0:xoffset] = xbuff[xoffset:2 * xoffset]\r\n    # Επεξεργασία του frame\r\n        Yc = donothing(Y)\r\n    # Συσσώρευση\r\n        bound1 = i * N\r\n        bound2 = (i + 1) * N\r\n        Y_tot[bound1:bound2, :] = Yc\r\n    # Αντιστροφή της διαδικασίας\r\n        Yh = idonothing(Yc)\r\n        ybuff[yoffset:ybuffer_rows, :] = Yh\r\n    # Παραγωγή δειγμάτων synthesis\r\n        Z = frame_sub_synthesis(ybuff, G)\r\n    # Shift ybuffer\r\n        ybuff[0:yoffset, :] = ybuff[yoffset:2 * yoffset, :]\r\n    # Συσσώρευση σε xhat\r\n        xhat[(bound1 *M):(bound2*M)] = Z\r\n    # Write file to another file in our folder\r\n    wavfile.write(\"MYFILE_CODECO.wav\", sr, xhat.astype(np.int16))\r\n    return xhat.astype(np.int16), Y_tot\r\n\r\ndef signalPower(x):\r\n    return np.mean(np.square(x, dtype='int32')) #to prevent overflow\r\n\r\ndef SNRsystem(inputSig, outputSig):\r\n    noise = outputSig - inputSig\r\n    powS = signalPower(outputSig)\r\n    powN = signalPower(noise)\r\n    return powS/powN\r\n\r\n#Coder Implementation\r\ndef coder0(wavin, h,M,N):\r\n    # Διαβάζω το αρχείο .wav\r\n    sr, data = wavfile.read(wavin)  # 514944\r\n    # Κατασκευάζω το φίλτρο ανάλυσης\r\n    H = make_mp3_analysisfb(h, M)\r\n    L = len(h)  # 512\r\n    MN = M * N\r\n\r\n    # Μέγεθος buffer\r\n    xbuffer_size = (N - 1) * M + L\r\n    # Buffers\r\n    xbuff = np.zeros([xbuffer_size])\r\n    # Ορίζω το offset του buffer\r\n    xoffset = xbuffer_size - MN\r\n\r\n    iters = math.ceil(len(data) / (MN))\r\n\r\n    # Αρχικοποιώ Y_tot, xhat\r\n    Y_tot = np.zeros((N * iters, M))\r\n\r\n    for i in range(0, iters):\r\n        # Fill buffer\r\n        xbuff[xoffset:xbuffer_size] = data[i * MN:(i + 1) * MN]\r\n        # Frame Sub Analysis sto buffer mou\r\n        Y = frame_sub_analysis(xbuff, H, N)\r\n        # Shift xbuffer\r\n        xbuff[0:xoffset] = xbuff[xoffset:2 * xoffset]\r\n        # Επεξεργασία του frame\r\n        Yc = donothing(Y)\r\n        # Συσσώρευση\r\n        bound1 = i * N\r\n        bound2 = (i + 1) * N\r\n        Y_tot[bound1:bound2, :] = Yc\r\n    return Y_tot\r\n\r\n#Decoder Implementation\r\ndef decoder0(Y_tot, h, M, N):\r\n    sr = 44100\r\n    data_len = Y_tot.shape[0] * Y_tot.shape[1]\r\n    # Κατασκευάζω το φίλτρο σύνθεσης\r\n    G = make_mp3_synthesisfb(h, M)\r\n    L = len(h)  # 512\r\n    MN = M * N\r\n\r\n    # Μέγεθος buffer\r\n    ybuffer_rows = int((N - 1) + L / M)\r\n    # Buffers\r\n    ybuff = np.zeros([ybuffer_rows, M])\r\n    # Ορίζω το offset του buffer\r\n    yoffset = ybuffer_rows - N\r\n\r\n    iters = math.ceil(data_len / (MN))\r\n    xhat = np.zeros(data_len)\r\n\r\n    for i in range(0, iters):\r\n        bound1 = i * N\r\n        bound2 = (i + 1) * N\r\n        Yc = Y_tot[bound1:bound2, :]\r\n        # Αντιστροφή της διαδικασίας\r\n        Yh = idonothing(Yc)\r\n        ybuff[yoffset:ybuffer_rows, :] = Yh\r\n        # Παραγωγή δειγμάτων synthesis\r\n        Z = frame_sub_synthesis(ybuff, G)\r\n        # Shift ybuffer\r\n        ybuff[0:yoffset, :] = ybuff[yoffset:2 * yoffset, :]\r\n        # Συσσώρευση σε xhat\r\n        xhat[(bound1 * M):(bound2 * M)] = Z\r\n\r\n    # Write file to another file in our folder\r\n    wavfile.write(\"MYFILE_DECODER.wav\", sr, xhat.astype(np.int16))\r\n    return xhat.astype(np.int16)\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- scripts and data/subband.py	(revision c3eb1c4a7bea2a72ca2cfaba859218beb1ca7d2c)
++++ scripts and data/subband.py	(date 1674811551884)
+@@ -64,13 +64,13 @@
+     return xhat.astype(np.int16), Y_tot
+ 
+ def signalPower(x):
+-    return np.mean(np.square(x, dtype='int32')) #to prevent overflow
++    return np.square(x, dtype='int32') #to prevent overflow
+ 
+ def SNRsystem(inputSig, outputSig):
+-    noise = outputSig - inputSig
+-    powS = signalPower(outputSig)
+-    powN = signalPower(noise)
+-    return powS/powN
++    noise = np.mean(outputSig) - np.mean(inputSig)
++    powS = np.mean(outputSig)**2
++    powN = noise**2
++    return 10*np.log10(powS/powN)
+ 
+ #Coder Implementation
+ def coder0(wavin, h,M,N):
