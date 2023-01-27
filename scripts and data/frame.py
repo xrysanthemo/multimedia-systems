@@ -22,7 +22,7 @@ def frame_sub_synthesis(ybuff: np.ndarray, G: np.ndarray) -> np.ndarray:
 
 	Gr = G.reshape(M, M * N, order='F').copy()
 	Z = np.zeros([1152])
-	for n in range(ybuff.shape[0] - N):
+	for n in range(ybuff.shape[0] - N + 1):
 		tmp = ybuff[n:n + N, :].T.flatten()
 		yr = np.expand_dims(tmp, axis=-1)
 		z = np.dot(Gr, yr)

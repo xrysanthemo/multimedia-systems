@@ -4,6 +4,8 @@ from mp3 import make_mp3_analysisfb, make_mp3_synthesisfb
 from frame import frame_sub_analysis, frame_sub_synthesis
 from scipy.io import wavfile
 from nothing import donothing, idonothing
+from plot import plot_H_Hz, plot_H_barks, plot_err, plot_snr
+from matplotlib import pyplot as plt
 
 def get_impulse_response():
     # read numpy file
@@ -40,10 +42,18 @@ def codec0(wavin, h, M, N):
     for i in range(0, iters):
     # Fill buffer
         xbuff[xoffset:xbuffer_size] = data[i * MN:(i + 1) * MN]
+        # plt.plot(xbuff, 'g')
+        # plt.plot(data[i * MN:(i + 1) * MN], 'r')
+        # plt.title("Without Shift")
+        # plt.show()
     # Frame Sub Analysis sto buffer mou
         Y = frame_sub_analysis(xbuff, H, N)
     # Shift xbuffer
-        xbuff[0:xoffset] = xbuff[xoffset:2 * xoffset]
+        xbuff[0:xoffset] = xbuff[xbuffer_size - xoffset:]
+        # plt.plot(xbuff, 'g')
+        # plt.plot(data[i * MN:(i + 1) * MN], 'r')
+        # plt.title("With Shift")
+        # plt.show()
     # Επεξεργασία του frame
         Yc = donothing(Y)
     # Συσσώρευση
@@ -56,25 +66,24 @@ def codec0(wavin, h, M, N):
     # Παραγωγή δειγμάτων synthesis
         Z = frame_sub_synthesis(ybuff, G)
     # Shift ybuffer
-        ybuff[0:yoffset, :] = ybuff[yoffset:2 * yoffset, :]
+        ybuff[0:yoffset, :] = ybuff[ybuffer_rows - yoffset:, :]
     # Συσσώρευση σε xhat
-        xhat[(bound1 *M):(bound2*M)] = Z
+        xhat[(bound1*M):(bound2*M)] = Z
+
     # Write file to another file in our folder
     #ena teleutaio shift sto xhat
     val = xhat[0:xoffset]
-    xhat[0:(len(xhat)- xoffset)] = xhat[xoffset:]
-    xhat[(len(xhat)- xoffset):] = val
+    xhat[0:(len(xhat) - xoffset)] = xhat[xoffset:]
+    xhat[(len(xhat) - xoffset):] = val
+
     wavfile.write("MYFILE_CODECO.wav", sr, xhat.astype(np.int16))
     return xhat.astype(np.int16), Y_tot
 
-def signalPower(x):
-    return np.mean(np.square(x, dtype='int32')) #to prevent overflow
-
 def SNRsystem(inputSig, outputSig):
-    noise = outputSig - inputSig
-    powS = signalPower(outputSig)
-    powN = signalPower(noise)
-    return powS/powN
+    noise = np.float64(outputSig - inputSig)
+    powS = np.mean(np.float64(outputSig)**2)
+    powN = np.mean(noise**2)
+    return 10*np.log10(powS/powN)
 
 #Coder Implementation
 def coder0(wavin, h,M,N):

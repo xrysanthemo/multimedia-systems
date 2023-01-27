@@ -5,7 +5,7 @@ from dct import iframeDCT, frameDCT
 from subband import codec0, get_impulse_response, SNRsystem, coder0, decoder0
 from psychoacoustics import DCTpower, Dksparse, STinit, MaskPower, get_hearing_threshold, STreduction, Hz2Barks, psycho
 from quantization import critical_bands, DCT_band_scale, quantizer, dequantizer
-from plot import plot_H_Hz, plot_H_barks, plot_err
+from plot import plot_H_Hz, plot_H_barks, plot_err, plot_snr
 import matplotlib.pyplot as plt
 
 # Define Parameters
@@ -29,14 +29,23 @@ x_hat, Y_tot = codec0('myfile.wav', h, M, N)
 # # Coder - Decoder
 # Y_tot = coder0('myfile.wav', h, M, N)
 # x_hat = decoder0(Y_tot, h, M, N)
-
+#
 # print("x_hat diff: ", np.mean(np.mean(x_hat - x_hat2)))
 # print("Y_tot diff: ", np.mean(np.mean(Y_tot - Y_tot2)))
 # plot_err(data, x_hat)
 
-# #Experiments - SNR
-# SNR = SNRsystem(data, x_hat)
-# print("SNR: ", SNR)
+#Experiments - SNR
+SNR = SNRsystem(data, x_hat)
+# signal = np.mean(np.float64(data)**2)
+# noise = (np.mean(np.float64(data) - np.mean(np.float64(x_hat)))**2)
+# SNR = 10*np.log10(signal/noise)
+print("SNR: ", SNR, " dB")
+
+# plot_snr(data, x_hat)
+
+# error = data - x_hat
+# plot_err(data, x_hat)
+
 
 #Πειράματα για DCT
 c = frameDCT(Y_tot)

@@ -37,13 +37,14 @@ def plot_H_barks(H, sr):
 
 #Plot SNR
 def plot_snr(x_data, x_hat):
+    x_len = len(x_hat)
     fig, axs = plt.subplots(2)
     fig.suptitle('Vertically stacked subplots')
-    axs[0].plot(x_data[0:5000])
-    axs[1].plot(x_hat[0:5000])
+    axs[0].plot(x_data[0:2000])
+    axs[1].plot(x_hat[0:2000])
     plt.show()
-    plt.plot(x_data[0:5000])
-    plt.plot(x_hat[0:5000])
+    plt.plot(x_data[0:2000])
+    plt.plot(x_hat[0:2000])
     plt.title("Comparison between the two bitstreams")
     plt.show()
 
