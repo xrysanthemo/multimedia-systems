@@ -23,7 +23,7 @@ def codec0(wavin, h, M, N):
     data_len = len(data)
     # Μέγεθος buffer
     xbuffer_size = (N - 1) * M + L
-    ybuffer_rows = int((N - 1) + L / M)
+    ybuffer_rows = int((N-1) + L / M)
     # Buffers
     xbuff = np.zeros([xbuffer_size])
     ybuff = np.zeros([ybuffer_rows, M])
@@ -60,6 +60,10 @@ def codec0(wavin, h, M, N):
     # Συσσώρευση σε xhat
         xhat[(bound1 *M):(bound2*M)] = Z
     # Write file to another file in our folder
+    #ena teleutaio shift sto xhat
+    val = xhat[0:xoffset]
+    xhat[0:(len(xhat)- xoffset)] = xhat[xoffset:]
+    xhat[(len(xhat)- xoffset):] = val
     wavfile.write("MYFILE_CODECO.wav", sr, xhat.astype(np.int16))
     return xhat.astype(np.int16), Y_tot
 
