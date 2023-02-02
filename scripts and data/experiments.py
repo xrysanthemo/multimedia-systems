@@ -57,8 +57,8 @@ Y_tot_hat = iframeDCT(c)
 D = Dksparse(MN)
 # Υπολογισμός κατωφλίου ακουστότητας
 Tg = psycho(c, D)
-# plt.plot(Tg)
-# plt.show()
+plt.plot(Tg)
+plt.show()
 
 # Πειράματα Quantization
 # Scale DCT

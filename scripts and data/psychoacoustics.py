@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.sparse import csr_matrix
+import matplotlib.pyplot as plt
 
 def Hz2Barks(f): #thn pairnw ws np array, vlepoume
     return np.asarray(13 * np.arctan(0.00076 * f) + 3.5 * np.arctan(np.square(f / 7500)))
@@ -56,6 +57,7 @@ def MaskPower(c, ST):
 
 def get_hearing_threshold():
     Tq = np.load('Tq.npy', allow_pickle=True)
+    # plt.plot(Tq[0,:])
     #NaN values handling
     ind = 0
     while np.isnan(Tq[0, ind]):
@@ -64,6 +66,8 @@ def get_hearing_threshold():
     while not(np.isnan(Tq[0, ind])):
         ind += 1
     Tq[0, ind:] = Tq[0, ind - 1]
+    # plt.plot(Tq[0,:])
+    # plt.show()
 
     return Tq
 

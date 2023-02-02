@@ -33,7 +33,7 @@ def DCT_band_scale(c):
     bands_len = int(max(cb))  # = 25
     sc = []
     cs = np.zeros((Kmax,))
-    for i in sorted(list(set(cb[1:]))):
+    for i in range(1, bands_len + 1):
         inds = np.where(cb == i)
         ci = c[inds]
         sci =max(abs(ci)**(3/4))
@@ -105,7 +105,7 @@ def all_bands_quantizer(c, Tg):
             Tgi = Tg[c_band_inds - 1]   #βάζω -1 επειδή το c_bands_inds ξεκινάει από το 1, ενώ το Tg από το 0
             if i == 3:
                 plt.plot(Pbi - Tgi)
-            if all(Pbi <= Tgi):         #για κάποιο λόγο δεν μειώνεται το πρώτο στοιχείο του Pbi (για i = 1)
+            if all(Pbi <= Tgi):
                 symb_index.append(symb_index_c)
                 B[i-1] = b
                 SF[i-1] = sc_of_band
