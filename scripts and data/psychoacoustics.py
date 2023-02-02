@@ -71,10 +71,19 @@ def STreduction(ST, c, Tq):
     PM = MaskPower(c, ST)
     STr = []
     PMr = []
-    for j in range(len(ST)):
+    STlen = len(ST)
+    for j in range(STlen):
         if Tq[0, j] <= PM[j]:
-            STr.append(j)
+            STr.append(ST[j])
             PMr.append(PM[j])
+    STrlen = len(STr)
+    STrbarks = Hz2Barks(np.asarray(STr)).tolist()
+    STrinds = []
+    for i in range(STrlen - 2, -1, -1):
+        if 0.5 + STrbarks[i] > STrbarks[i + 1]:
+            STrinds.append(i)
+            STrbarks.pop(i)
+    STr = np.delete(STr, STrinds)
     return STr, PMr
 # TODO CHANGE KMAX = MN -1
 def SpreadFunc(ST, PM, Kmax):

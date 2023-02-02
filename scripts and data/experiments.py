@@ -57,8 +57,8 @@ Y_tot_hat = iframeDCT(c)
 D = Dksparse(MN)
 # Υπολογισμός κατωφλίου ακουστότητας
 Tg = psycho(c, D)
-plt.plot(Tg)
-plt.show()
+# plt.plot(Tg)
+# plt.show()
 
 # Πειράματα Quantization
 # Scale DCT
@@ -72,4 +72,8 @@ xh = dequantizer(symb_index, b)
 # Quantization error
 q_error = np.max(np.abs(cs - xh))
 print("Max Quantization Error", q_error)
-symb_index_r, SF, B = all_bands_quantizer(c, Tg)
+datalen = len(data)
+# symb_index_r, SF, B = all_bands_quantizer(c[MN*1:MN*2], Tg)
+for i in range(datalen//MN):
+    symb_index_r, SF, B = all_bands_quantizer(c[MN*i:MN*(i+1)], Tg)
+    print(i)
