@@ -69,8 +69,7 @@ def get_hearing_threshold():
     # plt.plot(Tq[0,:])
     # plt.show()
 
-    return Tq
-
+    return Tq - 5 #BEST TQ : 3-5
 def STreduction(ST, c, Tq):
     PM = MaskPower(c, ST)
     STr = []
@@ -122,7 +121,7 @@ def Masking_Thresholds(ST, PM, Kmax):
     f = [k*fs/(Kmax*2) for k in range(Kmax)]
     z = Hz2Barks(np.asarray(f))
     SF = SpreadFunc(ST, PM, Kmax)
-    Ti =np.asarray([[PM[j] - 0.275*z[ST[j]] + SF[i, j] - 6.025 for j in range(STlen)] for i in range(Kmax)])
+    Ti = np.asarray([[PM[j] - 0.275*z[ST[j]] + SF[i, j] - 6.025 for j in range(STlen)] for i in range(Kmax)])
     return Ti
 
 def Global_Masking_Thresholds(Ti, Tq):
@@ -144,6 +143,6 @@ def psycho(c, D):
     # Define Masking Thresholds
     Ti = Masking_Thresholds(ST, PMr, MN)
     # Define the Global Masking Thresholds
-    Tg = Global_Masking_Thresholds(Ti, Tq)
+    Tg = Global_Masking_Thresholds(Ti, Tq) #-3 itan kalo
     return Tg
 
