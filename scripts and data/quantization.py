@@ -83,11 +83,11 @@ def dequantizer(symb_index, b):
 def all_bands_quantizer(c, Tg):
     MN = len(Tg)
     cb = critical_bands(MN)
-    max_bands = int(np.max(cb) + 1)
+    max_bands = int(np.max(cb))
     symb_index = []
     B = np.zeros(max_bands)
     SF = np.zeros(max_bands)
-    for i in range(1, max_bands):
+    for i in range(1, max_bands + 1):
         b = 1
         c_band_inds = np.where(cb == i)[0]
 
@@ -98,13 +98,15 @@ def all_bands_quantizer(c, Tg):
         while True:
             symb_index_c = quantizer(cs_of_band, b)
             c_h = dequantizer(symb_index_c, b)
-            c_h_coeff = np.float64(np.sign(c_h) * (abs(c_h)*sc_of_band) ** (4/3))
+            c_h_coeff = np.float64(np.sign(c_h) * np.cbrt(c_h * sc_of_band) ** 4)
 
             quant_error = abs(c[c_band_inds] - c_h_coeff)
             Pbi = 10 * np.log10(np.square(quant_error))
             Tgi = Tg[c_band_inds - 1]   #βάζω -1 επειδή το c_bands_inds ξεκινάει από το 1, ενώ το Tg από το 0
-            if i == 3:
-                plt.plot(Pbi - Tgi)
+            # plt.plot(Pbi - Tgi)
+            # string = "Error for band: " + str(i) + ", Bit Number: " + str(b)
+            # plt.title(string)
+            # plt.show()
             if all(Pbi <= Tgi):
                 symb_index.append(symb_index_c)
                 B[i-1] = b
@@ -112,20 +114,16 @@ def all_bands_quantizer(c, Tg):
                 break
             else:
                 b += 1
-
-        # while not(np.all(Pb[np.where(cb == i)] < Tg[np.where(cb == i)[0] - 1])):
-        #     b = 1
-        #     c_of_band = c[np.where(cb == i)[0] - 1]
-        #     cs, sc = DCT_band_scale(c_of_band)
-        #     symb_index_c = quantizer(cs, b)
-        #     c_h = dequantizer(symb_index_c, b)
-        #     c_h_coeff = np.sign(c_h) * ((c_h * sc[0])**(4/3))
-        #     quant_error = np.abs([np.where(cb == i)[0] - 1] - c_h_coeff)
-        #     Pb = 10 * np.log10(quant_error**2)
-        #     b += 1
-
-        # symb_index.append(symb_index_c)
-        # B.append(b)
-        # SF.append(sc_of_band)
-
     return symb_index, SF, B
+
+def all_bands_dequantizer(symb_index, B, SF):
+    xh = []
+    num_of_bands = len(B)
+    for i in range(num_of_bands):
+        b = B[i]
+        symb_index_band = symb_index[i]
+        xh_band = dequantizer(symb_index_band, b)
+        xh_coeff = np.float64(np.sign(xh_band) * np.cbrt(xh_band * SF[i]) ** 4)
+        xh.append(xh_coeff)
+    xh = [item for sublist in xh for item in sublist]
+    return xh

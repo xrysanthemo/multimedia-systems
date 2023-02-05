@@ -37,9 +37,11 @@ def STinit(c,D):
     ST = []
     P = DCTpower(c)
     Kmax = D.shape[0]
-    for k in range(1, Kmax - 1):
+    for k in range(1, Kmax):
         (rows, cols) = D[:, k].nonzero()
         if (P[k] > P [k + 1] and P[k] > P[k-1]):
+            ST.append(k)
+        else:
             for i in rows:
                 if (k+i < 1152 and P[k] > P[k + i] + 7 and P[k] > P[k - i] + 7):
                     ST.append(k)
@@ -68,8 +70,8 @@ def get_hearing_threshold():
     Tq[0, ind:] = Tq[0, ind - 1]
     # plt.plot(Tq[0,:])
     # plt.show()
+    return Tq
 
-    return Tq - 5 #BEST TQ : 3-5
 def STreduction(ST, c, Tq):
     PM = MaskPower(c, ST)
     STr = []
@@ -143,6 +145,6 @@ def psycho(c, D):
     # Define Masking Thresholds
     Ti = Masking_Thresholds(ST, PMr, MN)
     # Define the Global Masking Thresholds
-    Tg = Global_Masking_Thresholds(Ti, Tq) #-3 itan kalo
-    return Tg
+    Tg = Global_Masking_Thresholds(Ti, Tq)
+    return Tg + 5.1
 

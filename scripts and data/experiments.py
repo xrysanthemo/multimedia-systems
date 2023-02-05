@@ -4,7 +4,8 @@ from scipy.io import wavfile
 from dct import iframeDCT, frameDCT
 from subband import codec0, get_impulse_response, SNRsystem, coder0, decoder0
 from psychoacoustics import DCTpower, Dksparse, STinit, MaskPower, get_hearing_threshold, STreduction, Hz2Barks, psycho
-from quantization import critical_bands, DCT_band_scale, quantizer, dequantizer, all_bands_quantizer
+from quantization import critical_bands, DCT_band_scale, quantizer, dequantizer, all_bands_quantizer,  all_bands_dequantizer
+from rle import RLE, iRLE
 from plot import plot_H_Hz, plot_H_barks, plot_err, plot_snr
 import matplotlib.pyplot as plt
 
@@ -72,8 +73,37 @@ xh = dequantizer(symb_index, b)
 # Quantization error
 q_error = np.max(np.abs(cs - xh))
 print("Max Quantization Error", q_error)
-datalen = len(data)
-# symb_index_r, SF, B = all_bands_quantizer(c[MN*1:MN*2], Tg)
-for i in range(datalen//MN):
-    symb_index_r, SF, B = all_bands_quantizer(c[MN*i:MN*(i+1)], Tg)
-    print(i)
+
+# datalen = len(data)
+# all_c = []
+# for i in range(datalen//MN):
+#     symb_index_r, SF, B = all_bands_quantizer(c[MN*i:MN*(i+1)], Tg)
+#     # print("frame: ", i, " bits: ", B)
+#     ch = all_bands_dequantizer(symb_index_r, B, SF)
+#     all_c.append(ch)
+# all_c = [item for sublist in all_c for item in sublist]
+# print(len(all_c))
+
+#RLE
+symb_index_dummy1 = [0, 0, 3, 4 , 9 , 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, -1, 0, -2]
+symb_index_dummy2 = [3, 4 ,9 ,0,0, 0,0,0,0,1,0,0,0,-1, 0, -2]
+symb_index_dummy3 = [0]
+symb_index_dummy4 = [0,0, 0,0,0,0,0,0,0]
+
+
+symb_index_r, SF, B = all_bands_quantizer(c[MN*2:MN*(3)], Tg)
+symb_index_r_flattened = [item for sublist in symb_index_r for item in sublist]
+rle = RLE(symb_index_dummy1, len(symb_index_dummy1))
+rle2 = RLE(symb_index_dummy2,len(symb_index_dummy2))
+rle3 = RLE(symb_index_dummy3,len(symb_index_dummy3))
+rle4 = RLE(symb_index_dummy4,len(symb_index_dummy4))
+
+inverse_dummy_1 = iRLE(rle, len(symb_index_dummy1))
+inverse_dummy_2 = iRLE(rle2, len(symb_index_dummy2))
+inverse_dummy_3 = iRLE(rle3, len(symb_index_dummy3))
+inverse_dummy_4 = iRLE(rle4, len(symb_index_dummy4))
+
+print(inverse_dummy_1 - symb_index_dummy1)
+print(inverse_dummy_2 - symb_index_dummy2)
+print(inverse_dummy_3 - symb_index_dummy3)
+print(inverse_dummy_4 - symb_index_dummy4)
