@@ -63,9 +63,9 @@ def quantizer(x, b):
     return symb_index
 
 def dequantizer(symb_index, b):
-    xh = np.zeros_like(symb_index)
+    xh = np.zeros_like(symb_index).astype(np.float64)
     x_len = len(xh)
-    symbs = symb_index + max(symb_index)
+    symbs = symb_index + max(abs(symb_index))
     zones_num = 2 ** b - 1
     wb = 2 / (zones_num + 1)  # 2^(1-b)
     for i in range(x_len):
@@ -99,14 +99,15 @@ def all_bands_quantizer(c, Tg):
             symb_index_c = quantizer(cs_of_band, b)
             c_h = dequantizer(symb_index_c, b)
             c_h_coeff = np.float64(np.sign(c_h) * np.cbrt(c_h * sc_of_band) ** 4)
-
             quant_error = abs(c[c_band_inds] - c_h_coeff)
             Pbi = 10 * np.log10(np.square(quant_error))
             Tgi = Tg[c_band_inds - 1]   #βάζω -1 επειδή το c_bands_inds ξεκινάει από το 1, ενώ το Tg από το 0
+
             # plt.plot(Pbi - Tgi)
             # string = "Error for band: " + str(i) + ", Bit Number: " + str(b)
             # plt.title(string)
             # plt.show()
+
             if all(Pbi <= Tgi):
                 symb_index.append(symb_index_c)
                 B[i-1] = b

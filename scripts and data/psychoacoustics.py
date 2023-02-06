@@ -39,13 +39,17 @@ def STinit(c,D):
     Kmax = D.shape[0]
     for k in range(1, Kmax):
         (rows, cols) = D[:, k].nonzero()
-        if (P[k] > P [k + 1] and P[k] > P[k-1]):
+        counter = 0
+        if (P[k] > P[k + 1] and P[k] > P[k-1]):
             ST.append(k)
         else:
             for i in rows:
-                if (k+i < 1152 and P[k] > P[k + i] + 7 and P[k] > P[k - i] + 7):
+                if (k + i < 1152 and P[k] > P[k + i] + 7 and P[k] > P[k - i] + 7):
                     ST.append(k)
-    ST = sorted(list(set(ST)))
+                    counter = counter + 1
+            if counter == len(rows):
+                ST.append(k)
+    ST = sorted(list(set(ST)))  # No need of this
     return ST
 
 def MaskPower(c, ST):
@@ -68,8 +72,8 @@ def get_hearing_threshold():
     while not(np.isnan(Tq[0, ind])):
         ind += 1
     Tq[0, ind:] = Tq[0, ind - 1]
-    # plt.plot(Tq[0,:])
-    # plt.show()
+    plt.plot(Tq[0,:])
+    plt.show()
     return Tq
 
 def STreduction(ST, c, Tq):
@@ -90,7 +94,7 @@ def STreduction(ST, c, Tq):
             STrbarks.pop(i)
     STr = np.delete(STr, STrinds)
     return STr, PMr
-# TODO CHANGE KMAX = MN -1
+
 def SpreadFunc(ST, PM, Kmax):
     STlen = len(ST)
     SF = np.zeros((Kmax, STlen))
@@ -146,5 +150,5 @@ def psycho(c, D):
     Ti = Masking_Thresholds(ST, PMr, MN)
     # Define the Global Masking Thresholds
     Tg = Global_Masking_Thresholds(Ti, Tq)
-    return Tg + 5.1
+    return Tg - 15
 
