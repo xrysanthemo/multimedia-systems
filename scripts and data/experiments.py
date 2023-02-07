@@ -6,7 +6,7 @@ from subband import codec0, get_impulse_response, SNRsystem, coder0, decoder0
 from psychoacoustics import DCTpower, Dksparse, STinit, MaskPower, get_hearing_threshold, STreduction, Hz2Barks, psycho
 from quantization import critical_bands, DCT_band_scale, quantizer, dequantizer, all_bands_quantizer,  all_bands_dequantizer
 from rle import RLE, iRLE
-from plot import plot_H_Hz, plot_H_barks, plot_err, plot_snr
+from huffdelo import huff
 import matplotlib.pyplot as plt
 
 # Define Parameters
@@ -58,8 +58,8 @@ Y_tot_hat = iframeDCT(c)
 D = Dksparse(MN)
 # Υπολογισμός κατωφλίου ακουστότητας
 Tg = psycho(c, D)
-plt.plot(Tg)
-plt.show()
+# plt.plot(Tg)
+# plt.show()
 
 # # Πειράματα Quantization
 # # Scale DCT
@@ -78,13 +78,20 @@ datalen = len(data)
 all_c = []
 for i in range(datalen//MN):
     symb_index_r, SF, B = all_bands_quantizer(c[MN*i:MN*(i+1)], Tg)
-    print("frame: ", i, " bits: ", B)
+    # print("frame: ", i, " bits: ", B)
     ch = all_bands_dequantizer(symb_index_r, B, SF)
     all_c.append(ch)
+    symb_index_r_flat = [int(item) for sublist in symb_index_r for item in sublist]
+
+    rle = RLE(symb_index_r_flat, len(symb_index_r_flat))
+    rle_symb_index = iRLE(rle, len(symb_index_r_flat))
+    frame_stream, frame_symbol_prob = huff(rle)
+    # print(all(rle_symb_index == symb_index_r_flat))
 all_c = [item for sublist in all_c for item in sublist]
 
 
 #RLE
+
 # symb_index_dummy1 = [0, 0, 3, 4, 9, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, -1, 0, -2]
 # symb_index_dummy2 = [3, 4, 9, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, -1, 0, -2]
 # symb_index_dummy3 = [0]
@@ -107,3 +114,11 @@ all_c = [item for sublist in all_c for item in sublist]
 # print(inverse_dummy_2 - symb_index_dummy2)
 # print(inverse_dummy_3 - symb_index_dummy3)
 # print(inverse_dummy_4 - symb_index_dummy4)
+
+# Huffman
+
+
+
+
+
+
