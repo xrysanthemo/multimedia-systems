@@ -7,8 +7,7 @@ from psychoacoustics import DCTpower, Dksparse, STinit, MaskPower, get_hearing_t
 from quantization import critical_bands, DCT_band_scale, quantizer, dequantizer, all_bands_quantizer,  all_bands_dequantizer
 from rle import RLE, iRLE
 from huffdelo import huff, ihuff
-import matplotlib.pyplot as plt
-
+from file_handler import write_huff, read_huff
 # Define Parameters
 M = 32 #num of filters
 L = 512 #len of filters
@@ -85,9 +84,11 @@ for i in range(datalen//MN):
 
     run_symbols_rle = RLE(symb_index_r_flat, len(symb_index_r_flat))
     symb_index_rle = iRLE(run_symbols_rle, len(symb_index_r_flat))
+
     frame_stream, frame_symbol_prob = huff(run_symbols_rle)
     run_symbols_huff = ihuff(frame_stream, frame_symbol_prob)
-
+    write_huff("huffman.txt", frame_stream)
+    file = read_huff("huffman.txt")
     # print(all(symb_index_rle == symb_index_r_flat))
     # error = run_symbols_huff - run_symbols_rle
 
@@ -118,9 +119,6 @@ all_c = [item for sublist in all_c for item in sublist]
 # print(inverse_dummy_2 - symb_index_dummy2)
 # print(inverse_dummy_3 - symb_index_dummy3)
 # print(inverse_dummy_4 - symb_index_dummy4)
-
-# Huffman
-
 
 
 
