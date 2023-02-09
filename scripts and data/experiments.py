@@ -6,7 +6,7 @@ from subband import codec0, get_impulse_response, SNRsystem, coder0, decoder0
 from psychoacoustics import DCTpower, Dksparse, STinit, MaskPower, get_hearing_threshold, STreduction, Hz2Barks, psycho
 from quantization import critical_bands, DCT_band_scale, quantizer, dequantizer, all_bands_quantizer,  all_bands_dequantizer
 from rle import RLE, iRLE
-from huffdelo import huff
+from huffdelo import huff, ihuff
 import matplotlib.pyplot as plt
 
 # Define Parameters
@@ -83,10 +83,14 @@ for i in range(datalen//MN):
     all_c.append(ch)
     symb_index_r_flat = [int(item) for sublist in symb_index_r for item in sublist]
 
-    rle = RLE(symb_index_r_flat, len(symb_index_r_flat))
-    rle_symb_index = iRLE(rle, len(symb_index_r_flat))
-    frame_stream, frame_symbol_prob = huff(rle)
-    # print(all(rle_symb_index == symb_index_r_flat))
+    run_symbols_rle = RLE(symb_index_r_flat, len(symb_index_r_flat))
+    symb_index_rle = iRLE(run_symbols_rle, len(symb_index_r_flat))
+    frame_stream, frame_symbol_prob = huff(run_symbols_rle)
+    run_symbols_huff = ihuff(frame_stream, frame_symbol_prob)
+
+    # print(all(symb_index_rle == symb_index_r_flat))
+    # error = run_symbols_huff - run_symbols_rle
+
 all_c = [item for sublist in all_c for item in sublist]
 
 

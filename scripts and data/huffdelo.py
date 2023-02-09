@@ -1,73 +1,86 @@
 import numpy as np
 import heapq
-
-def invert_tree(node, prefix, code_table):
-    if isinstance(node[1], str):
-        # This is a leaf node, so add the symbol and its Huffman code to the table
-        code_table[node[1]] = prefix
-    else:
-        # This is an internal node, so traverse its children
-        invert_tree(node[1][0], prefix + [0], code_table)
-        invert_tree(node[1][1], prefix + [1], code_table)
+from collections import defaultdict
 
 def huff(run_symbols):
     run_symbols_str = run_symbols.astype(str)
-    run_symbols_str = np.char.add(run_symbols_str[:, 0], run_symbols_str[:, 1])
+    temp = np.char.add(run_symbols_str[:, 0], " ")
+    run_symbols_str = np.char.add(temp, run_symbols_str[:, 1])
+
 
     symbols, counts = np.unique(run_symbols_str, return_counts=True)
     # Calculate the probability of each symbol
     probabilities = counts / len(run_symbols_str)
-    frame_symbol_prob = np.array([symbols, probabilities]).T
+
+    run_symbols_unique = np.array(list(set(tuple(row) for row in run_symbols)))
+    frame_symbol_prob = np.array([run_symbols_unique[:,0], run_symbols_unique[:,1], probabilities]).T
 
     # Huffman encode
-    # Create a list of tuples, where each tuple consists of a symbol and its probability
-    nodes = list(zip(symbols, probabilities))
+    # heap = [[weight, [symbol, ""]] for symbol, weight in zip(symbols, probabilities)]
 
-    # Sort the list of tuples in ascending order of probabilities
-    heapq.heapify(nodes)
+    heap = []
+    for j in range(len(frame_symbol_prob)):
+        symbol = str(int(frame_symbol_prob[j,0])) + " " + str(int(frame_symbol_prob[j,1]))
+        weight = frame_symbol_prob[j, 2]
+        heap.append([weight, [symbol, ""]])
 
-    while len(nodes) > 1:
-        # Take the two nodes with the lowest weights
-        node1 = heapq.heappop(nodes)
-        node2 = heapq.heappop(nodes)
-
-        # Create a new node with these two nodes as its children
-        new_node = (node1[1] + node2[1], [node1, node2])
-
-        # Add the new node back to the list, sorted by its weight
-        heapq.heappush(nodes, new_node)
-
-    # The remaining node is the root of the Huffman tree
-    root = nodes[0]
-
-    # Traverse the tree to create a table that maps each symbol to its Huffman code
-    code_table = {}
-    invert_tree(root[1], [], code_table)
+    heapq.heapify(heap)
+    while len(heap) > 1:
+        lo = heapq.heappop(heap)
+        hi = heapq.heappop(heap)
+        for pair in lo[1:]:
+            pair[1] = '0' + pair[1]
+        for pair in hi[1:]:
+            pair[1] = '1' + pair[1]
+        heapq.heappush(heap, [lo[0] + hi[0]] + lo[1:] + hi[1:])
 
     # Use the table to encode the symbols as a bitstream
-    frame_stream = [code_table[symbol] for symbol in symbols]
-
+    rle_huff = sorted(heapq.heappop(heap)[1:], key=lambda p: (len(p[-1]), p))
+    rle_huff_arr = np.asarray(rle_huff)
+    frame_stream = []
+    for rle_symbol in run_symbols_str:
+        index = np.where(rle_huff_arr[:,0] == rle_symbol)[0][0]
+        frame_stream.append(rle_huff_arr[index, 1])
+    # from list of strings to one string
+    frame_stream = "".join(frame_stream)
     return frame_stream, frame_symbol_prob
 
+def ihuff(frame_stream, frame_symbol_prob):
+    # Build the huffman tree from the frame symbol probabilities
+    heap = []
+    for j in range(len(frame_symbol_prob)):
+        symbol = str(int(frame_symbol_prob[j,0])) + " " + str(int(frame_symbol_prob[j,1]))
+        weight = frame_symbol_prob[j,2]
+        heap.append([weight, [symbol, ""]])
+    heapq.heapify(heap)
+    while len(heap) > 1:
+        lo = heapq.heappop(heap)
+        hi = heapq.heappop(heap)
+        for pair in lo[1:]:
+            pair[1] = '0' + pair[1]
+        for pair in hi[1:]:
+            pair[1] = '1' + pair[1]
+        heapq.heappush(heap, [lo[0] + hi[0]] + lo[1:] + hi[1:])
 
-# def ihuff (frame_stream, frame_symbol_prob):
-#     def huffman_decode(encoded_symbols, code_table):
-#         # Create a table that maps each code to its corresponding symbol
-#         inverted_table = {}
-#         for symbol, code in code_table.items():
-#             inverted_table[tuple(code)] = symbol
-#
-#         # Decode the symbols
-#         decoded_symbols = []
-#         for encoded_symbol in encoded_symbols:
-#             decoded_symbols.append(inverted_table[tuple(encoded_symbol)])
-#
-#         return decoded_symbols
-#
-#     # Example usage
-#     encoded_symbols = huffman_encode(symbols, probabilities)
-#     code_table = huffman_encode(symbols, probabilities)
-#     decoded_symbols = huffman_decode(encoded_symbols, code_table)
-#     print(decoded_symbols)
+    rle_huff = sorted(heapq.heappop(heap)[1:], key=lambda p: (len(p[-1]), p))
+    rle_huff_arr = np.asarray(rle_huff)
+
+    # # Decode the frame stream
+    # huff_dict = defaultdict(str)
+    # for pair in heapq.heappop(heap)[1:]:
+    #     huff_dict[pair[1]] = pair[0]
+
+    symbol = ""
+    run_symbols_str = []
+    for bit in frame_stream:
+        symbol += bit
+        if symbol in rle_huff_arr[:, 1]:
+            run_symbols_str.append(rle_huff_arr[np.where(rle_huff_arr[:, 1] == symbol)[0][0]])
+            symbol = ""
+    # Delete huffman symbols column and convert to numpy array
+    run_symbols = np.asarray(run_symbols_str)[:, :-1]
+    #Split strings, and then refactor in type and dimensions same as those of initial run symbols
+    run_symbols = np.array([np.array(item[0].split()) for item in run_symbols]).astype(int)
+    return run_symbols
 
 
