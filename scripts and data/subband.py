@@ -93,6 +93,7 @@ def coder0(wavin, h,M,N):
     H = make_mp3_analysisfb(h, M)
     L = len(h)  # 512
     MN = M * N
+    data_len = len(data)
 
     # Μέγεθος buffer
     xbuffer_size = (N - 1) * M + L
@@ -101,7 +102,7 @@ def coder0(wavin, h,M,N):
     # Ορίζω το offset του buffer
     xoffset = xbuffer_size - MN
 
-    iters = math.ceil(len(data) / (MN))
+    iters = math.ceil(data_len / (MN))
 
     # Αρχικοποιώ Y_tot, xhat
     Y_tot = np.zeros((N * iters, M))
@@ -112,7 +113,7 @@ def coder0(wavin, h,M,N):
         # Frame Sub Analysis sto buffer mou
         Y = frame_sub_analysis(xbuff, H, N)
         # Shift xbuffer
-        xbuff[0:xoffset] = xbuff[xoffset:2 * xoffset]
+        xbuff[0:xoffset] = xbuff[xbuffer_size - xoffset:]
         # Επεξεργασία του frame
         Yc = donothing(Y)
         # Συσσώρευση
@@ -150,7 +151,7 @@ def decoder0(Y_tot, h, M, N):
         # Παραγωγή δειγμάτων synthesis
         Z = frame_sub_synthesis(ybuff, G)
         # Shift ybuffer
-        ybuff[0:yoffset, :] = ybuff[yoffset:2 * yoffset, :]
+        ybuff[0:yoffset, :] = ybuff[ybuffer_rows - yoffset:, :]
         # Συσσώρευση σε xhat
         xhat[(bound1 * M):(bound2 * M)] = Z
 

@@ -7,7 +7,9 @@ from psychoacoustics import DCTpower, Dksparse, STinit, MaskPower, get_hearing_t
 from quantization import critical_bands, DCT_band_scale, quantizer, dequantizer, all_bands_quantizer,  all_bands_dequantizer
 from rle import RLE, iRLE
 from huffdelo import huff, ihuff
-from file_handler import write_huff, read_huff
+from file_handler import write_huff, read_huff, create_huff
+from assembled_mp3 import MP3codec
+
 # Define Parameters
 M = 32 #num of filters
 L = 512 #len of filters
@@ -24,7 +26,9 @@ sr, data = wavfile.read('myfile.wav')
 # plot_H_barks(H, sr)
 
 # Codec
-x_hat, Y_tot = codec0('myfile.wav', h, M, N)
+# x_hat, Y_tot = codec0('myfile.wav', h, M, N)
+
+x_hat, Y_tot = MP3codec('myfile.wav', h, M, N)
 
 # # Coder - Decoder
 # Y_tot = coder0('myfile.wav', h, M, N)
@@ -75,12 +79,27 @@ Tg = psycho(c, D)
 
 datalen = len(data)
 all_c = []
-for i in range(datalen//MN):
+create_huff("huffman.txt")
+for i in range(358,359):
     symb_index_r, SF, B = all_bands_quantizer(c[MN*i:MN*(i+1)], Tg)
     # print("frame: ", i, " bits: ", B)
     ch = all_bands_dequantizer(symb_index_r, B, SF)
     all_c.append(ch)
+
+    # FLATTENING
     symb_index_r_flat = [int(item) for sublist in symb_index_r for item in sublist]
+
+    # UNFLATTENING
+    cb = critical_bands(MN)
+    symb_index_sublist = []
+    symb_index_unflat = []
+    current_index = 0
+    for i in range(1, int(max(cb)+1)):
+        count = np.count_nonzero(cb == i)
+        symb_index_sublist = np.asarray(symb_index_r_flat[current_index:current_index + count])
+        symb_index_unflat.append(symb_index_sublist)
+        current_index = current_index + count
+    # END OF UNFLATTENING
 
     run_symbols_rle = RLE(symb_index_r_flat, len(symb_index_r_flat))
     symb_index_rle = iRLE(run_symbols_rle, len(symb_index_r_flat))

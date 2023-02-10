@@ -37,7 +37,7 @@ def STinit(c,D):
     ST = []
     P = DCTpower(c)
     Kmax = D.shape[0]
-    for k in range(1, Kmax):
+    for k in range(1, Kmax - 1):
         (rows, cols) = D[:, k].nonzero()
         counter = 0
         if (P[k] > P[k + 1] and P[k] > P[k-1]):
@@ -48,6 +48,20 @@ def STinit(c,D):
                     counter = counter + 1
             if counter == len(rows):
                 ST.append(k)
+
+        # else:
+        #     for i in rows:
+        #         if (k + i < 1152 and P[k] > P[k + i] + 7 and P[k] > P[k - i] + 7):
+        #             ST.append(k)
+        #             break
+
+        # if (P[k] > P[k + 1] and P[k] > P[k-1]):
+        #     for i in rows:
+        #         if (k + i < 1152 and P[k] > P[k + i] + 7 and P[k] > P[k - i] + 7):
+        #             counter = counter + 1
+        #     if counter == len(rows):
+        #         ST.append(k)
+
     # ST = sorted(list(set(ST)))  # No need of this
     return ST
 
@@ -146,8 +160,8 @@ def psycho(c, D):
     # Ελάτωση των maskers
     STr, PMr = STreduction(ST, c, Tq)
     # Define Masking Thresholds
-    Ti = Masking_Thresholds(ST, PMr, MN)
+    Ti = Masking_Thresholds(STr, PMr, MN)
     # Define the Global Masking Thresholds
     Tg = Global_Masking_Thresholds(Ti, Tq)
-    return Tg - 15
+    return Tg - 35
 
