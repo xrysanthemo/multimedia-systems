@@ -45,7 +45,7 @@ SNR = SNRsystem(data, x_hat)
 # SNR = 10*np.log10(signal/noise)
 print("SNR: ", SNR, " dB")
 
-# plot_snr(data, x_hat)
+plot_snr(data, x_hat)
 
 # error = data - x_hat
 # plot_err(data, x_hat)

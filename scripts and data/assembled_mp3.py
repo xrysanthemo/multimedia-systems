@@ -101,7 +101,7 @@ def MP3codec(wavin, h, M, N):
 
         # Dequantization
         ch = all_bands_dequantizer(symb_index_unflat, B, SF)
-        ch.append(0)
+        ch = [0] + ch
 
         # iDCT
         Yh = iframeDCT(np.asarray(ch))
@@ -173,7 +173,7 @@ def MP3cod(wavin, h,M,N):
 
         # Huffman
         frame_stream, frame_symbol_prob = huff(run_symbols_rle)
-        write_huff("huffman.txt", frame_stream+"AAAA\n")
+        write_huff("huffman.txt", frame_stream+"\n")
     Y_tot = read_huff("huffman.txt")
     return Y_tot
 
