@@ -36,12 +36,14 @@ def plot_H_barks(H, sr):
     plt.show()
 
 #Plot SNR
-def plot_snr(x_data, x_hat):
+def plot_stream_comparison(x_data, x_hat):
     x_len = len(x_hat)
     fig, axs = plt.subplots(2)
     fig.suptitle('Vertically stacked subplots')
     axs[0].plot(x_data[0:2000])
+    axs[0].set_title('Indicative Samples of the Original Stream')
     axs[1].plot(x_hat[0:2000])
+    axs[1].set_title('Indicative Samples of the Decoded Stream')
     plt.show()
     plt.plot(x_data[0:2000])
     plt.plot(x_hat[0:2000])

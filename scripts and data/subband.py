@@ -4,8 +4,7 @@ from mp3 import make_mp3_analysisfb, make_mp3_synthesisfb
 from frame import frame_sub_analysis, frame_sub_synthesis
 from scipy.io import wavfile
 from nothing import donothing, idonothing
-from plot import plot_H_Hz, plot_H_barks, plot_err, plot_snr
-from matplotlib import pyplot as plt
+
 
 def get_impulse_response():
     # read numpy file
@@ -70,13 +69,13 @@ def codec0(wavin, h, M, N):
     # Συσσώρευση σε xhat
         xhat[(bound1*M):(bound2*M)] = Z
 
-    # Write file to another file in our folder
     #ena teleutaio shift sto xhat
     val = xhat[0:xoffset]
     xhat[0:(len(xhat) - xoffset)] = xhat[xoffset:]
     xhat[(len(xhat) - xoffset):] = val
 
-    wavfile.write("MYFILE_CODECO.wav", sr, xhat.astype(np.int16))
+    # Write file to another file in our folder
+    wavfile.write("MYFILE_CODEC0.wav", sr, xhat.astype(np.int16))
     return xhat.astype(np.int16), Y_tot
 
 def SNRsystem(inputSig, outputSig):
@@ -132,10 +131,12 @@ def decoder0(Y_tot, h, M, N):
     MN = M * N
 
     # Μέγεθος buffer
+    xbuffer_size = (N - 1) * M + L
     ybuffer_rows = int((N - 1) + L / M)
     # Buffers
     ybuff = np.zeros([ybuffer_rows, M])
     # Ορίζω το offset του buffer
+    xoffset = xbuffer_size - MN
     yoffset = ybuffer_rows - N
 
     iters = math.ceil(data_len / (MN))
@@ -154,8 +155,12 @@ def decoder0(Y_tot, h, M, N):
         ybuff[0:yoffset, :] = ybuff[ybuffer_rows - yoffset:, :]
         # Συσσώρευση σε xhat
         xhat[(bound1 * M):(bound2 * M)] = Z
+    # ena teleutaio shift sto xhat
+    val = xhat[0:xoffset]
+    xhat[0:(len(xhat) - xoffset)] = xhat[xoffset:]
+    xhat[(len(xhat) - xoffset):] = val
 
     # Write file to another file in our folder
-    wavfile.write("MYFILE_DECODER.wav", sr, xhat.astype(np.int16))
+    wavfile.write("MYFILE_DECODER0.wav", sr, xhat.astype(np.int16))
     return xhat.astype(np.int16)
 

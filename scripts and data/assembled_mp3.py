@@ -86,7 +86,7 @@ def MP3codec(wavin, h, M, N):
         run_symbols_huff = ihuff(frame_stream, frame_symbol_prob)
 
         # iRLE
-        symb_index_rle = iRLE(run_symbols_huff, len(symb_index_r_flat))  # TODO Calculate "len(symb_index_r_flat)" from run_symbols_huff
+        symb_index_rle = iRLE(run_symbols_huff, MN - 1)
 
         # UNFLATTENING
         cb = critical_bands(MN)
@@ -141,11 +141,15 @@ def MP3cod(wavin, h,M,N):
     xbuff = np.zeros([xbuffer_size])
     # Ορίζω το offset του buffer
     xoffset = xbuffer_size - MN
-
+    # Υπολογισμος συχνοτικών περιοχών
+    D = Dksparse(MN)
     iters = math.ceil(data_len / (MN))
-
     # Αρχικοποιώ Y_tot, xhat
     Y_tot = np.zeros((N * iters, M))
+
+    frame_symbol_prob_tot = np.zeros(iters, dtype=object)
+    SF_tot = np.zeros(iters, dtype=object)
+    B_tot = np.zeros(iters, dtype=object)
 
     for i in range(iters):
         # Fill buffer
@@ -169,48 +173,84 @@ def MP3cod(wavin, h,M,N):
 
         # RLE
         symb_index_r_flat = [int(item) for sublist in symb_index_r for item in sublist]
-        run_symbols_rle = RLE(symb_index_r_flat, len(symb_index_r_flat))
+        run_symbols_rle = RLE(symb_index_r_flat, MN -1)
 
         # Huffman
         frame_stream, frame_symbol_prob = huff(run_symbols_rle)
-        write_huff("huffman.txt", frame_stream+"\n")
-    Y_tot = read_huff("huffman.txt")
+        write_huff("huffman.txt", frame_stream + "\n")
+        frame_symbol_prob_tot[i] = frame_symbol_prob
+        B_tot[i] = B
+        SF_tot[i] = SF
+    Y_tot = [read_huff("huffman.txt"), frame_symbol_prob_tot, B_tot, SF_tot]
     return Y_tot
 
 def MP3decod(Y_tot, h, M, N):
-    #TODO : /N AS DIVIDER IN TXT FILE, ITERS FROM TXT, APPEND IN XHAT INSEAD OF INITIALIZING
     sr = 44100
-    data_len = Y_tot.shape[0] * Y_tot.shape[1]
+    MN = M * N
+    data_len = len(Y_tot[1]) * MN
     # Κατασκευάζω το φίλτρο σύνθεσης
     G = make_mp3_synthesisfb(h, M)
     L = len(h)  # 512
-    MN = M * N
+
+    B = Y_tot[2]
+    SF = Y_tot[3]
 
     # Μέγεθος buffer
+    xbuffer_size = (N - 1) * M + L
     ybuffer_rows = int((N - 1) + L / M)
     # Buffers
+    xbuff = np.zeros([xbuffer_size])
     ybuff = np.zeros([ybuffer_rows, M])
     # Ορίζω το offset του buffer
+    xoffset = xbuffer_size - MN
     yoffset = ybuffer_rows - N
 
     iters = math.ceil(data_len / (MN))
     xhat = np.zeros(data_len)
 
     for i in range(0, iters):
-        bound1 = i * N
-        bound2 = (i + 1) * N
-        Yc = Y_tot[bound1:bound2, :]
-        # Αντιστροφή της διαδικασίας
-        Yh = idonothing(Yc)
+        print("frame: ", i, " bits: ", B[i])
+        frame_symbol_prob = Y_tot[1][i]
+        frame_stream = Y_tot[0].split("\n")[i]
+
+        # iHuffman
+        run_symbols_huff = ihuff(frame_stream, frame_symbol_prob)
+
+        # iRLE
+        symb_index_rle = iRLE(run_symbols_huff, MN - 1)
+
+        # UNFLATTENING
+        cb = critical_bands(MN)
+        symb_index_unflat = []
+        current_index = 0
+        for j in range(1, int(max(cb) + 1)):
+            count = np.count_nonzero(cb == j)
+            symb_index_sublist = np.asarray(symb_index_rle[current_index:current_index + count])
+            symb_index_unflat.append(symb_index_sublist)
+            current_index = current_index + count
+        # END OF UNFLATTENING
+
+        # Dequantization
+        ch = all_bands_dequantizer(symb_index_unflat, B[i], SF[i])
+        ch = [0] + ch
+
+        # iDCT
+        Yh = iframeDCT(np.asarray(ch))
+
         ybuff[yoffset:ybuffer_rows, :] = Yh
         # Παραγωγή δειγμάτων synthesis
         Z = frame_sub_synthesis(ybuff, G)
         # Shift ybuffer
         ybuff[0:yoffset, :] = ybuff[ybuffer_rows - yoffset:, :]
         # Συσσώρευση σε xhat
+        bound1 = i * N
+        bound2 = (i + 1) * N
         xhat[(bound1 * M):(bound2 * M)] = Z
 
-    # Write file to another file in our folder
-    wavfile.write("MYFILE_DECODER.wav", sr, xhat.astype(np.int16))
+    # ena teleutaio shift sto xhat
+    val = xhat[0:xoffset]
+    xhat[0:(len(xhat) - xoffset)] = xhat[xoffset:]
+    xhat[(len(xhat) - xoffset):] = val
+    wavfile.write("MYFILE_MP3DECODER.wav", sr, xhat.astype(np.int16))
     return xhat.astype(np.int16)
 

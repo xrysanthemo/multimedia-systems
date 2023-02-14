@@ -48,21 +48,6 @@ def STinit(c,D):
                     counter = counter + 1
             if counter == len(rows):
                 ST.append(k)
-
-        # else:
-        #     for i in rows:
-        #         if (k + i < 1152 and P[k] > P[k + i] + 7 and P[k] > P[k - i] + 7):
-        #             ST.append(k)
-        #             break
-
-        # if (P[k] > P[k + 1] and P[k] > P[k-1]):
-        #     for i in rows:
-        #         if (k + i < 1152 and P[k] > P[k + i] + 7 and P[k] > P[k - i] + 7):
-        #             counter = counter + 1
-        #     if counter == len(rows):
-        #         ST.append(k)
-
-    # ST = sorted(list(set(ST)))  # No need of this
     return ST
 
 def MaskPower(c, ST):
@@ -85,8 +70,6 @@ def get_hearing_threshold():
     while not(np.isnan(Tq[0, ind])):
         ind += 1
     Tq[0, ind:] = Tq[0, ind - 1]
-    # plt.plot(Tq[0,:])
-    # plt.show()
     return Tq
 
 def STreduction(ST, c, Tq):
@@ -163,5 +146,5 @@ def psycho(c, D):
     Ti = Masking_Thresholds(STr, PMr, MN)
     # Define the Global Masking Thresholds
     Tg = Global_Masking_Thresholds(Ti, Tq)
-    return Tg - 35
+    return Tg - 20
 
