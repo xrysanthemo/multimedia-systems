@@ -146,5 +146,5 @@ def psycho(c, D):
     Ti = Masking_Thresholds(STr, PMr, MN)
     # Define the Global Masking Thresholds
     Tg = Global_Masking_Thresholds(Ti, Tq)
-    return Tg - 20
+    return Tg - 35
 

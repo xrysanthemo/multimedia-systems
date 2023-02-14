@@ -168,7 +168,6 @@ print("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MP3 Decoder ~~~~~~~~~~~~~~~~~~~~~~~~
 x_hatMP3_2 = MP3decod(Y_totMP3_2, h, M, N)
 
 print("x_hat diff: ", np.mean(np.mean(x_hatMP3 - x_hatMP3_2)))
-print("Y_tot diff: ", np.mean(np.mean(Y_totMP3 - Y_totMP3_2)))
 plot_err(data, x_hatMP3_2)
 plot_stream_comparison(data, x_hatMP3_2)
 

@@ -42,7 +42,7 @@ def MP3codec(wavin, h, M, N):
 
     # Create file for storing huffman encoding
     create_huff("huffman.txt")
-
+    compressed_size = 0
     for i in range(iters):
         # Fill buffer
         xbuff[xoffset:xbuffer_size] = data[i * MN:(i + 1) * MN]
@@ -70,6 +70,7 @@ def MP3codec(wavin, h, M, N):
 
         # Quantization
         symb_index_r, SF, B = all_bands_quantizer(c, Tg)
+        compressed_size = compressed_size + sum(B)
         print("frame: ", i, " bits: ", B)
 
         # RLE
@@ -123,6 +124,7 @@ def MP3codec(wavin, h, M, N):
     xhat[(len(xhat) - xoffset):] = val
     wavfile.write("delofile_alla_kalutero.wav", sr, xhat.astype(np.int16))
     Y_tot = read_huff("huffman.txt")
+    print("Total size of file in bits: ", compressed_size)
     return xhat.astype(np.int16), Y_tot
 
 
@@ -194,7 +196,7 @@ def MP3decod(Y_tot, h, M, N):
 
     B = Y_tot[2]
     SF = Y_tot[3]
-
+    compressed_size = sum(sum(B))
     # Μέγεθος buffer
     xbuffer_size = (N - 1) * M + L
     ybuffer_rows = int((N - 1) + L / M)
@@ -252,5 +254,6 @@ def MP3decod(Y_tot, h, M, N):
     xhat[0:(len(xhat) - xoffset)] = xhat[xoffset:]
     xhat[(len(xhat) - xoffset):] = val
     wavfile.write("MYFILE_MP3DECODER.wav", sr, xhat.astype(np.int16))
+    print("Total size of file in bits: ", compressed_size)
     return xhat.astype(np.int16)
 
