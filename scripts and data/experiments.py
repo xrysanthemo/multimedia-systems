@@ -134,7 +134,7 @@ create_huff("dummy_huffman.txt")
 #Example for some frames
 for i in range(350,353):
     symb_index_r, SF, B = all_bands_quantizer(c[MN*i:MN*(i+1)], Tg)
-    print("\n---- frame: ", i, " bits: ", B, " ----\n")
+    # print("\n---- frame: ", i, " bits: ", B, " ----\n")
     ch = all_bands_dequantizer(symb_index_r, B, SF)
 
     # FLATTENING
@@ -179,6 +179,6 @@ plot_stream_comparison(data, x_hatMP3_2)
 
 #Experiments - SNR
 SNR_MP3 = SNRsystem(data, x_hatMP3)
-print("SNR codec0: ", SNR_MP3, " dB")
+print("SNR MP3codec: ", SNR_MP3, " dB")
 SNR_MP3 = SNRsystem(data, x_hatMP3_2)
-print("SNR coder0 - decoder0: ", SNR_MP3, " dB")
+print("SNR MP3coder - MP3decoder: ", SNR_MP3, " dB")

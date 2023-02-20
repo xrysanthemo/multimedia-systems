@@ -13,6 +13,9 @@ import math
 import numpy as np
 
 def MP3codec(wavin: str, h: np.ndarray, M: np.ndarray, N: np.ndarray)->(np.ndarray,np.ndarray):
+    """
+    Πλήρης κωδικοποίηση/αποκωδικοποίηση MP3
+    """
     # Διαβάζω το αρχείο .wav
     sr, data = wavfile.read(wavin)  # 514944
     # Κατασκευάζω τα φίλτρα ανάλυσης και σύνθεσης
@@ -42,7 +45,9 @@ def MP3codec(wavin: str, h: np.ndarray, M: np.ndarray, N: np.ndarray)->(np.ndarr
 
     # Αρχικοποιώ xhat
     xhat = np.zeros(data.shape)
-
+    #Για να υπολογιστεί το compression rate
+    crit_bands = critical_bands(MN).astype(int)
+    bands_number =np.asarray([np.count_nonzero(crit_bands == instance) for instance in range(1, int(max(crit_bands))+1)])
     # Create file for storing huffman encoding
     create_huff("huffman.txt")
     compressed_size = 0
@@ -65,7 +70,7 @@ def MP3codec(wavin: str, h: np.ndarray, M: np.ndarray, N: np.ndarray)->(np.ndarr
 
         # Quantization
         symb_index_r, SF, B = all_bands_quantizer(c, Tg)
-        compressed_size = compressed_size + sum(B)
+        compressed_size = compressed_size + np.dot(B.astype(int), bands_number)
         print("frame: ", i, " bits: ", B)
 
         # RLE
@@ -97,7 +102,7 @@ def MP3codec(wavin: str, h: np.ndarray, M: np.ndarray, N: np.ndarray)->(np.ndarr
 
         # Dequantization
         ch = all_bands_dequantizer(symb_index_unflat, B, SF)
-        ch = [0] + ch
+        ch = [0] + ch #Εισάγουμε ξανά το πρώτο στοιχείο του διανύσματος το οποίο άλλωστε θα κβαντιζόταν στο 0, για αυτό δεν το εισάγαμε στην παραπάνω διαδικασία
 
         # iDCT
         Yh = iframeDCT(np.asarray(ch))
@@ -132,6 +137,9 @@ def MP3codec(wavin: str, h: np.ndarray, M: np.ndarray, N: np.ndarray)->(np.ndarr
 
 
 def MP3cod(wavin: str, h: np.ndarray,M: np.ndarray,N: np.ndarray)->np.ndarray:
+    """
+    Πλήρης κωδικοποίηση MP3
+    """
     # Διαβάζω το αρχείο .wav
     sr, data = wavfile.read(wavin)  # 514944
     # Κατασκευάζω το φίλτρο ανάλυσης
@@ -191,6 +199,9 @@ def MP3cod(wavin: str, h: np.ndarray,M: np.ndarray,N: np.ndarray)->np.ndarray:
     return Y_tot
 
 def MP3decod(Y_tot: np.ndarray, h: np.ndarray, M: np.ndarray, N: np.ndarray)->np.ndarray:
+    """
+    Πλήρης αποκωδικοποίηση MP3
+    """
     sr = 44100
     MN = M * N
     data_len = len(Y_tot[1]) * MN
@@ -200,7 +211,6 @@ def MP3decod(Y_tot: np.ndarray, h: np.ndarray, M: np.ndarray, N: np.ndarray)->np
 
     B = Y_tot[2]
     SF = Y_tot[3]
-    compressed_size = sum(sum(B))
     # Μέγεθος buffer
     xbuffer_size = (N - 1) * M + L
     ybuffer_rows = int((N - 1) + L / M)
@@ -264,7 +274,5 @@ def MP3decod(Y_tot: np.ndarray, h: np.ndarray, M: np.ndarray, N: np.ndarray)->np
 
     #Write file to another file in our folder
     wavfile.write("MYFILE_MP3DECODER.wav", sr, xhat.astype(np.int16))
-    #Συνολικός βαθμός συμπίεσης
-    print("Total size of file in bits: ", compressed_size)
     return xhat.astype(np.int16)
 

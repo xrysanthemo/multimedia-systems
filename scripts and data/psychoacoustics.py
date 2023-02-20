@@ -56,7 +56,6 @@ def STinit(c:np.ndarray,D:np.ndarray)->list:
         counter = 0
         if (P[k] > P[k + 1] and P[k] > P[k-1]):
             ST.append(k)
-        else:
             for i in rows:
                 if (k + i < 1152 and P[k] > P[k + i] + 7 and P[k] > P[k - i] + 7):
                     ST.append(k)
@@ -94,8 +93,10 @@ def get_hearing_threshold()->np.ndarray:
     return Tq
 
 def STreduction(ST: np.ndarray, c: np.ndarray, Tq: np.ndarray)->(np.ndarray,np.ndarray):
-   """Μειώνει τον αριθμό των maskers με κριτήριο το κατώφλι ακουστότητας στη
-   σιωπή και την απόσταση μεταξύ των maskers"""
+    """
+    Μειώνει τον αριθμό των maskers με κριτήριο το κατώφλι ακουστότητας στη
+    σιωπή και την απόσταση μεταξύ των maskers
+    """
     PM = MaskPower(c, ST)
     STr = []
     PMr = []
