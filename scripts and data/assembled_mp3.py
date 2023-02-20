@@ -205,7 +205,6 @@ def MP3decod(Y_tot: np.ndarray, h: np.ndarray, M: np.ndarray, N: np.ndarray)->np
     xbuffer_size = (N - 1) * M + L
     ybuffer_rows = int((N - 1) + L / M)
     # Buffers
-    xbuff = np.zeros([xbuffer_size])
     ybuff = np.zeros([ybuffer_rows, M])
     # Ορίζω το offset του buffer
     xoffset = xbuffer_size - MN
@@ -225,7 +224,7 @@ def MP3decod(Y_tot: np.ndarray, h: np.ndarray, M: np.ndarray, N: np.ndarray)->np
         # iRLE
         symb_index_rle = iRLE(run_symbols_huff, MN - 1)
 
-        # UNFLATTENING
+        # UNFLATTENING - Προκειμένου να περαστούν στον κβαντιστή
         cb = critical_bands(MN)
         symb_index_unflat = []
         current_index = 0
@@ -238,7 +237,8 @@ def MP3decod(Y_tot: np.ndarray, h: np.ndarray, M: np.ndarray, N: np.ndarray)->np
 
         # Dequantization
         ch = all_bands_dequantizer(symb_index_unflat, B[i], SF[i])
-        ch = [0] + ch
+        ch = [0] + ch #Για να μην χαθεί το ch[0], το οποίο δεν λάβαμε υπόψιν στις προηγούμενες
+        #διαδικασίες, επειδή ούτως ή άλλως κβαντίζεται στο 0
 
         # iDCT
         Yh = iframeDCT(np.asarray(ch))
