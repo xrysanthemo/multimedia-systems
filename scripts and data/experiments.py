@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
 from mp3 import make_mp3_analysisfb, make_mp3_synthesisfb
 from scipy.io import wavfile
 from dct import iframeDCT, frameDCT
@@ -14,19 +13,26 @@ from assembled_mp3 import MP3codec, MP3decod, MP3cod
 from plot import plot_H_Hz, plot_H_barks, plot_stream_comparison, plot_err
 
 # Define Parameters
-M = 32 #num of filters
-L = 512 #len of filters
-N = 36 #num of samples
-MN = M * N
+M = 32 #αριθμός filters
+L = 512 #αριθμός filters
+N = 36 #αριθμός samples
+MN = M * N #μήκος frame
 
+#συντελεστές mother wavelet για τη διαδικασία analysis/synthesis
 h = get_impulse_response().reshape(512,)
+#Διαδικασία για τους πίνακες make_mp3_analysis και make_mp3_synthesis
 H = make_mp3_analysisfb(h, M)
+G = make_mp3_synthesisfb(h, M)
 
+#Ανάγνωση του .wav αρχείου
 sr, data = wavfile.read('myfile.wav')
 
 # # Subband Filtering 3.1
 print("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Subband Filtering 3.1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")
-# Plot H Hz - barks
+#Print frame sub analysis and sub synthesis arrays
+print("Frame Sub Analysis: ", H, "\n")
+print("Frame Sub Synthesis: ", G,"\n")
+#Plot H Hz - barks
 plot_H_Hz(H, sr)
 plot_H_barks(H, sr)
 
@@ -35,9 +41,9 @@ x_hat, Y_tot = codec0('myfile.wav', h, M, N)
 plot_err(data, x_hat)
 plot_stream_comparison(data, x_hat)
 
-# # Coder - Decoder
+# Coder - Decoder
 Y_tot2 = coder0('myfile.wav', h, M, N)
-x_hat2 = decoder0(Y_tot, h, M, N)
+x_hat2 = decoder0(Y_tot2, h, M, N)
 
 print("x_hat diff: ", np.mean(np.mean(x_hat - x_hat2)))
 print("Y_tot diff: ", np.mean(np.mean(Y_tot - Y_tot2)))

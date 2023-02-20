@@ -1,8 +1,11 @@
 import numpy as np
 import heapq
-from collections import defaultdict
 
-def huff(run_symbols):
+
+def huff(run_symbols:np.ndarray)->(str, np.ndarray):
+    """
+    Κωδικοποίηση των RLE κατά Huffman με τη δημιουργία ενός Huffman Tree
+    """
     run_symbols_str = run_symbols.astype(str)
     temp = np.char.add(run_symbols_str[:, 0], " ")
     run_symbols_str = np.char.add(temp, run_symbols_str[:, 1])
@@ -14,9 +17,6 @@ def huff(run_symbols):
 
     run_symbols_unique = np.array(list(set(tuple(row) for row in run_symbols)))
     frame_symbol_prob = np.array([run_symbols_unique[:,0], run_symbols_unique[:,1], probabilities]).T
-
-    # Huffman encode
-    # heap = [[weight, [symbol, ""]] for symbol, weight in zip(symbols, probabilities)]
 
     heap = []
     for j in range(len(frame_symbol_prob)):
@@ -45,7 +45,10 @@ def huff(run_symbols):
     frame_stream = "".join(frame_stream)
     return frame_stream, frame_symbol_prob
 
-def ihuff(frame_stream, frame_symbol_prob):
+def ihuff(frame_stream:str, frame_symbol_prob:np.ndarray)->np.ndarray:
+    """
+    Αποκωδικοποίηση των RLE κατά Huffman με τη δημιουργία ενός Huffman Tree
+    """
     # Build the huffman tree from the frame symbol probabilities
     heap = []
     for j in range(len(frame_symbol_prob)):
@@ -65,11 +68,7 @@ def ihuff(frame_stream, frame_symbol_prob):
     rle_huff = sorted(heapq.heappop(heap)[1:], key=lambda p: (len(p[-1]), p))
     rle_huff_arr = np.asarray(rle_huff)
 
-    # # Decode the frame stream
-    # huff_dict = defaultdict(str)
-    # for pair in heapq.heappop(heap)[1:]:
-    #     huff_dict[pair[1]] = pair[0]
-
+    # Decode the frame stream
     symbol = ""
     run_symbols_str = []
     for bit in frame_stream:
@@ -77,8 +76,10 @@ def ihuff(frame_stream, frame_symbol_prob):
         if symbol in rle_huff_arr[:, 1]:
             run_symbols_str.append(rle_huff_arr[np.where(rle_huff_arr[:, 1] == symbol)[0][0]])
             symbol = ""
+
     # Delete huffman symbols column and convert to numpy array
     run_symbols = np.asarray(run_symbols_str)[:, :-1]
+
     #Split strings, and then refactor in type and dimensions same as those of initial run symbols
     run_symbols = np.array([np.array(item[0].split()) for item in run_symbols]).astype(int)
     return run_symbols

@@ -12,7 +12,7 @@ from nothing import donothing, idonothing
 import math
 import numpy as np
 
-def MP3codec(wavin, h, M, N):
+def MP3codec(wavin: str, h: np.ndarray, M: np.ndarray, N: np.ndarray)->(np.ndarray,np.ndarray):
     # Διαβάζω το αρχείο .wav
     sr, data = wavfile.read(wavin)  # 514944
     # Κατασκευάζω τα φίλτρα ανάλυσης και σύνθεσης
@@ -21,6 +21,8 @@ def MP3codec(wavin, h, M, N):
     # Δημιουργώ την παράμετρο για το l
     L = len(h)  # 512
     MN = M * N
+    # Zero padding στο input
+    data = np.pad(data, (0, MN), mode='constant')
     data_len = len(data)
     # Μέγεθος buffer
     xbuffer_size = (N - 1) * M + L
@@ -32,6 +34,7 @@ def MP3codec(wavin, h, M, N):
     xoffset = xbuffer_size - MN
     yoffset = ybuffer_rows - N
 
+    # Αριθμός επαναλήψεων
     iters = math.ceil(data_len / MN)
 
     # Υπολογισμος συχνοτικών περιοχών
@@ -43,23 +46,15 @@ def MP3codec(wavin, h, M, N):
     # Create file for storing huffman encoding
     create_huff("huffman.txt")
     compressed_size = 0
+
     for i in range(iters):
         # Fill buffer
         xbuff[xoffset:xbuffer_size] = data[i * MN:(i + 1) * MN]
-        # plt.plot(xbuff, 'g')
-        # plt.plot(data[i * MN:(i + 1) * MN], 'r')
-        # plt.title("Without Shift")
-        # plt.show()
+
         # Frame Sub Analysis sto buffer mou
         Y = frame_sub_analysis(xbuff, H, N)
         # Shift xbuffer
         xbuff[0:xoffset] = xbuff[xbuffer_size - xoffset:]
-        # plt.plot(xbuff, 'g')
-        # plt.plot(data[i * MN:(i + 1) * MN], 'r')
-        # plt.title("With Shift")
-        # plt.show()
-        # Επεξεργασία του frame
-        # Yc = donothing(Y)
 
         # DCT
         c = frameDCT(Y)
@@ -116,27 +111,36 @@ def MP3codec(wavin, h, M, N):
         bound1 = i * N
         bound2 = (i + 1) * N
         xhat[(bound1 * M):(bound2 * M)] = Z
-
-    # Write file to another file in our folder
-    # ena teleutaio shift sto xhat
+    # Τελευταίο shift στο xhat
     val = xhat[0:xoffset]
     xhat[0:(len(xhat) - xoffset)] = xhat[xoffset:]
     xhat[(len(xhat) - xoffset):] = val
+
+    # Remove padding
+    xhat = xhat[:(data_len - MN)]
+
+    # Write file to another file in our folder
     wavfile.write("delofile_alla_kalutero.wav", sr, xhat.astype(np.int16))
+
+    #Το Y_tot που χρειαστήκαμε εδώ ήταν το Huffman.
+    #Όλη η υπόλοιπη πληροφορία υπήρχε εσωτερικά στη συνάρτηση
     Y_tot = read_huff("huffman.txt")
+
+    #Για να υπολογίσουμε τον βαθμό συμπίεσης
     print("Total size of file in bits: ", compressed_size)
     return xhat.astype(np.int16), Y_tot
 
 
-def MP3cod(wavin, h,M,N):
+def MP3cod(wavin: str, h: np.ndarray,M: np.ndarray,N: np.ndarray)->np.ndarray:
     # Διαβάζω το αρχείο .wav
     sr, data = wavfile.read(wavin)  # 514944
     # Κατασκευάζω το φίλτρο ανάλυσης
     H = make_mp3_analysisfb(h, M)
     L = len(h)  # 512
     MN = M * N
+    # Padding στο input
+    data = np.pad(data, (0, MN), mode='constant')
     data_len = len(data)
-
     # Μέγεθος buffer
     xbuffer_size = (N - 1) * M + L
     # Buffers
@@ -145,10 +149,10 @@ def MP3cod(wavin, h,M,N):
     xoffset = xbuffer_size - MN
     # Υπολογισμος συχνοτικών περιοχών
     D = Dksparse(MN)
-    iters = math.ceil(data_len / (MN))
-    # Αρχικοποιώ Y_tot, xhat
-    Y_tot = np.zeros((N * iters, M))
 
+    #Αριθμός επαναλήψεων
+    iters = math.ceil(data_len / (MN))
+    # Αρχικοποιώ
     frame_symbol_prob_tot = np.zeros(iters, dtype=object)
     SF_tot = np.zeros(iters, dtype=object)
     B_tot = np.zeros(iters, dtype=object)
@@ -186,7 +190,7 @@ def MP3cod(wavin, h,M,N):
     Y_tot = [read_huff("huffman.txt"), frame_symbol_prob_tot, B_tot, SF_tot]
     return Y_tot
 
-def MP3decod(Y_tot, h, M, N):
+def MP3decod(Y_tot: np.ndarray, h: np.ndarray, M: np.ndarray, N: np.ndarray)->np.ndarray:
     sr = 44100
     MN = M * N
     data_len = len(Y_tot[1]) * MN
@@ -249,11 +253,18 @@ def MP3decod(Y_tot, h, M, N):
         bound2 = (i + 1) * N
         xhat[(bound1 * M):(bound2 * M)] = Z
 
-    # ena teleutaio shift sto xhat
+
+    #Ένα τελευταίο shift στο xhat
     val = xhat[0:xoffset]
     xhat[0:(len(xhat) - xoffset)] = xhat[xoffset:]
     xhat[(len(xhat) - xoffset):] = val
+
+    # Remove padding
+    xhat = xhat[:(data_len - MN)]
+
+    #Write file to another file in our folder
     wavfile.write("MYFILE_MP3DECODER.wav", sr, xhat.astype(np.int16))
+    #Συνολικός βαθμός συμπίεσης
     print("Total size of file in bits: ", compressed_size)
     return xhat.astype(np.int16)
 

@@ -1,7 +1,10 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
-def critical_bands(K):
+
+def critical_bands(K:int)->np.ndarray:
+    """
+    Επιστρέφει τα critical bands που αντιστοιχούν στα indices του frame
+    """
     MN = K
     cb = np.zeros(MN,)
     bands = create_crit_bands()
@@ -16,7 +19,12 @@ def critical_bands(K):
                 cb[i + 1] = bands[j, 0]
     return cb
 
-def create_crit_bands():
+def create_crit_bands()->np.ndarray:
+    """
+    Επιστρέφει τον πίνακα με τα critical bands, τον αύξοντα
+    αριθμό τους, την κεντρική συχνότητα και το εύρος τους
+    """
+
     bands_len = 25
     bands = np.zeros((bands_len, 4))
     bands[:, 0] = np.arange(1, bands_len + 1, 1)
@@ -25,23 +33,33 @@ def create_crit_bands():
     bands[:, 3] = np.array([100, 200, 300, 400, 510, 630, 770, 920, 1080, 1270, 1480, 1720, 2000, 2320, 2700, 3150, 3700, 4400, 5300, 6400, 7700, 9500, 12000, 15500, 22050]).reshape(bands_len, )
     return bands
 
-def DCT_band_scale(c):
+def DCT_band_scale(c:np.ndarray)->(np.ndarray, np.ndarray):
+    """
+    Κανονικοποιεί τους συντελεστές DCT στο [-1,1]
+    και αποθηκεύει μαζί τους τον scaling factor τους
+    """
     # Cs and Cb first element is trash
     Kmax = len(c)
-    # vector of bands for each k ceof
+    # vector of bands for each k coefficient
     cb = critical_bands(Kmax)
     bands_len = int(max(cb))  # = 25
     sc = []
     cs = np.zeros((Kmax,))
+
     for i in range(1, bands_len + 1):
         inds = np.where(cb == i)
         ci = c[inds]
-        sci =max(abs(ci)**(3/4))
+        sci =max(abs(ci)**(3/4)) #Scale fator
         sc.append(sci)
-        cs[inds] = np.divide(np.multiply(np.sign(ci), abs(ci)**(3/4)), sci)
+        cs[inds] = np.divide(np.multiply(np.sign(ci), abs(ci)**(3/4)), sci) #Κανονικοποίηση
     return cs, sc
 
-def quantizer(x, b):
+def quantizer(x:np.ndarray, b:int)->np.ndarray:
+    """
+    Δημιουργεί έναν ομοιόμορφο κβαντιστή με τις προϋποθέσεις
+    της εργασίας για b αριθμό bits. Ως σύμβαση, οι ζώνες κβαντισμού
+    δεξιά και αριστερά του μηδενός ενώνονται σε μία
+    """
     x_len = len(x)
     symb_index = np.zeros(x_len)
     zones_num = 2**b - 1
@@ -62,11 +80,17 @@ def quantizer(x, b):
                 break
     return symb_index
 
-def dequantizer(symb_index, b):
+def dequantizer(symb_index:np.ndarray, b:int)->np.ndarray:
+    """
+    Δημιουργεί έναν ομοιόμορφο αποκβαντιστή με τις προϋποθέσεις
+    της εργασίας για b αριθμό bits. Ως σύμβαση, οι ζώνες κβαντισμού
+    δεξιά και αριστερά του μηδενός ενώνονται σε μία
+    """
+
     xh = np.zeros_like(symb_index).astype(np.float64)
     x_len = len(xh)
     symbs = symb_index + max(abs(symb_index))
-    zones_num = 2 ** b - 1
+    zones_num = 2 ** b - 1 #Αριθμός ζωνών κβαντιστή
     wb = 2 / (zones_num + 1)  # 2^(1-b)
     for i in range(x_len):
         s = symbs[i]
@@ -80,7 +104,12 @@ def dequantizer(symb_index, b):
         xh[i] = (lower_bound + upper_bound)/2
     return xh
 
-def all_bands_quantizer(c, Tg):
+def all_bands_quantizer(c:np.ndarray, Tg:np.ndarray)->(np.ndarray, np.ndarray, np.ndarray):
+    """
+    Κβαντίζει κάθε critical band ενός frame με αριθμό bits σύμφωνα με τον αναδρομικό
+    αλγόριθμο που βασίζεται στο ψυχοακουστικό φαινόμενο
+    """
+
     MN = len(Tg)
     cb = critical_bands(MN)
     max_bands = int(np.max(cb))
@@ -102,12 +131,6 @@ def all_bands_quantizer(c, Tg):
             quant_error = abs(c[c_band_inds] - c_h_coeff)
             Pbi = 10 * np.log10(np.square(quant_error))
             Tgi = Tg[c_band_inds - 1]   #βάζω -1 επειδή το c_bands_inds ξεκινάει από το 1, ενώ το Tg από το 0
-
-            # plt.plot(Pbi - Tgi)
-            # string = "Error for band: " + str(i) + ", Bit Number: " + str(b)
-            # plt.title(string)
-            # plt.show()
-
             if all(Pbi <= Tgi):
                 symb_index.append(symb_index_c)
                 B[i-1] = b
@@ -118,6 +141,11 @@ def all_bands_quantizer(c, Tg):
     return symb_index, SF, B
 
 def all_bands_dequantizer(symb_index, B, SF):
+    """
+    Aποκβαντίζει κάθε critical band ενός frame με αριθμό bits σύμφωνα με τον αναδρομικό
+    αλγόριθμο που βασίζεται στο ψυχοακουστικό φαινόμενο
+    """
+
     xh = []
     num_of_bands = len(B)
     for i in range(num_of_bands):

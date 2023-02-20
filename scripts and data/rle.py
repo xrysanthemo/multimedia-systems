@@ -1,6 +1,10 @@
 import numpy as np
 
-def RLE(symb_index,K):
+def RLE(symb_index:np.ndarray,K:int):
+    """
+    Πραγματοποιεί την κωδικοποίηση κατά RLE (Run Length Encoding)
+    των συμβόλων που προέκυψαν από τον κβαντιστή/αποκβαντιστή
+    """
     nonzero_ind = np.nonzero(symb_index)[0]
     nonzero_len = len(nonzero_ind)
 
@@ -24,7 +28,11 @@ def RLE(symb_index,K):
 
     return run_symbols.astype(int)
 
-def iRLE(run_symbols,K):
+def iRLE(run_symbols:np.ndarray,K:int)->np.ndarray:
+    """
+    Αντιστρέφει τη διαδικασία RLE και μας επιστρέφει τα σύμβολα symb_index
+    όπως αυτά έρχονται από τον κβαντιστή/αποκβαντιστή
+    """
     symb_index = np.zeros(K)
     len_run_sym = len(run_symbols[:, 0])
     ind = 0
