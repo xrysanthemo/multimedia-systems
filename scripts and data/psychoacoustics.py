@@ -70,7 +70,7 @@ def MaskPower(c:np.ndarray, ST:np.ndarray) -> np.ndarray:
     τους συχνότητες
     """
     P = DCTpower(c)
-    i = 0
+    i = 0 #Αρχικοποίηση (δεν γνωρίζω κάθε φορά πόσοι είναι οι maskers στο frame)
     PM = np.zeros((len(ST),))
     for k in ST:
         PM[i] = 10 * np.log10(sum([10**(0.1*P[k + j]) for j in range(-1,2,1)]))
