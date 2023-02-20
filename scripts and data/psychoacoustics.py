@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.sparse import csr_matrix
-import matplotlib.pyplot as plt
 
 def Hz2Barks(f:np.ndarray)->np.ndarray:
     """
@@ -46,6 +45,9 @@ def Dksparse(Kmax:int)->csr_matrix: #Η είσοδος Kmax αντιστοιχε
     return D #έξοδος είναι sparse matrix Kmax * Kmax
 
 def STinit(c:np.ndarray,D:np.ndarray)->list:
+    """
+    Αρχικοποιεί το set των maskers
+    """
     ST = []
     P = DCTpower(c)
     Kmax = D.shape[0]
@@ -63,6 +65,10 @@ def STinit(c:np.ndarray,D:np.ndarray)->list:
     return ST
 
 def MaskPower(c:np.ndarray, ST:np.ndarray) -> np.ndarray:
+    """
+    Υπολογίζει την ισχύ των maskers λαμβάνοντας υπ'όψιν και τις δύο γειτονικές
+    τους συχνότητες
+    """
     P = DCTpower(c)
     i = 0
     PM = np.zeros((len(ST),))
@@ -72,6 +78,9 @@ def MaskPower(c:np.ndarray, ST:np.ndarray) -> np.ndarray:
     return PM
 
 def get_hearing_threshold()->np.ndarray:
+    """
+    Φορτώνει το κατώφλι ακουστότητας στη σιωπή
+    """
     Tq = np.load('Tq.npy', allow_pickle=True)
     # plt.plot(Tq[0,:])
     #NaN values handling
@@ -85,6 +94,8 @@ def get_hearing_threshold()->np.ndarray:
     return Tq
 
 def STreduction(ST: np.ndarray, c: np.ndarray, Tq: np.ndarray)->(np.ndarray,np.ndarray):
+   """Μειώνει τον αριθμό των maskers με κριτήριο το κατώφλι ακουστότητας στη
+   σιωπή και την απόσταση μεταξύ των maskers"""
     PM = MaskPower(c, ST)
     STr = []
     PMr = []
@@ -104,6 +115,10 @@ def STreduction(ST: np.ndarray, c: np.ndarray, Tq: np.ndarray)->(np.ndarray,np.n
     return STr, PMr
 
 def SpreadFunc(ST: np.ndarray, PM: np.ndarray, Kmax:int)-> np.ndarray:
+    """
+    Υπολογίζει την τιμή της spread function για κάθε masker
+    """
+
     STlen = len(ST)
     SF = np.zeros((Kmax, STlen))
     # Sample Frequency
@@ -127,6 +142,10 @@ def SpreadFunc(ST: np.ndarray, PM: np.ndarray, Kmax:int)-> np.ndarray:
     return SF
 
 def Masking_Thresholds(ST: np.ndarray, PM: np.ndarray, Kmax:int)-> np.ndarray:
+
+    """
+    Υπολογίζει την επιρροή των maskers στο κατώφλι ακουστότητας, Ti
+    """
     STlen = len(ST)
     Ti = np.zeros((Kmax, STlen))
     # Sample Frequency
@@ -139,6 +158,10 @@ def Masking_Thresholds(ST: np.ndarray, PM: np.ndarray, Kmax:int)-> np.ndarray:
     return Ti
 
 def Global_Masking_Thresholds(Ti: np.ndarray, Tq: np.ndarray)-> np.ndarray:
+    """
+    Υπολογίζει το συνολικό κατώφλι ακουστότητας, που προκύπτει από
+    το κατώφλι ακουστότητας στη σιωπή και την επιρροή των maskers
+    """
     Tg = np.zeros((Ti.shape[0],))
     for i in range(Ti.shape[0]):
         val = 10**(0.1*Tq[0,i])
@@ -148,6 +171,11 @@ def Global_Masking_Thresholds(Ti: np.ndarray, Tq: np.ndarray)-> np.ndarray:
     return Tg
 
 def psycho(c : np.ndarray, D: csr_matrix)-> np.ndarray:
+    """
+    Υλοποιεί συνολικά το ψυχοακουστικό φαινόμενο, επιστρέφοντας το
+    συνολικό κατώφλι ακουστότητας (εξαρτώμενο από τους maskers) για
+    ένα frame
+    """
     ST = STinit(c, D)
     # Κατώφλι ακουστότητας
     Tq = get_hearing_threshold()
@@ -158,5 +186,5 @@ def psycho(c : np.ndarray, D: csr_matrix)-> np.ndarray:
     Ti = Masking_Thresholds(STr, PMr, MN)
     # Define the Global Masking Thresholds
     Tg = Global_Masking_Thresholds(Ti, Tq)
-    return Tg - 35
+    return Tg - 35 #Το -35 προέκυψε από πειραματισμούς με το κατώφλι ακουστότητας
 
